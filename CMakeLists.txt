@@ -4,4 +4,6 @@ project(may_robot
         DESCRIPTION "Robot For Maayan"
         LANGUAGES CXX)
 
+set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,readability-*,-isystem)
+
 add_subdirectory(src)
