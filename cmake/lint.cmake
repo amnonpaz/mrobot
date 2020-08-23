@@ -1,4 +1,4 @@
-set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,readability-*,-isystem)
+set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,readability-*,-isystem,-extra-arg=-std=c++17)
 
 function(lint)
     set(options )
