@@ -3,6 +3,7 @@ set(TARGET_VERSION ${PROJECT_VERSION})
 
 set(SOURCES
     main.cc
+    gpio.cc
    )
 
 add_executable(${TARGET_NAME} ${SOURCES})

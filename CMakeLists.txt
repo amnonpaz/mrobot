@@ -4,6 +4,17 @@ project(may_robot
         DESCRIPTION "Robot For Maayan"
         LANGUAGES CXX)
 
+option(UNITTESTS "Build unittests" OFF)
+
 include(cmake/env.cmake)
 
-add_subdirectory(src)
+set(TESTING FALSE)
+if(UNITTESTS)
+    set(TESTING TRUE)
+endif()
+
+if (NOT TESTING)
+    add_subdirectory(src)
+else()
+    add_subdirectory(tests)
+endif()
