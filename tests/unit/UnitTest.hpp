@@ -70,6 +70,16 @@ class UnitTest {
         m_result &= local_res;              \
     }
 
+#define EXPECT_STRING_EMPTY(str) {          \
+        uint32_t line = __LINE__;           \
+        bool local_res = std::string(str).empty(); \
+        if (!local_res) {                   \
+            std::cout << "[+] Error on " << __FILE__ << ":" << std::to_string(line) << '\n' << \
+                "    Expected empty string, got " << str << '\n';  \
+        }                                   \
+        m_result &= local_res;              \
+    }
+
 #define UNIT_TEST(S, T)                                 \
     class __##T : public testing::UnitTest {            \
         public:                                         \
