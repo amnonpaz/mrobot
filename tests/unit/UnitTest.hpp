@@ -27,11 +27,11 @@ class TestsContainer {
 
 class UnitTest {
     public:
-        explicit UnitTest(TestsContainer *module, const std::string name) :
+        explicit UnitTest(TestsContainer *container, const std::string name) :
             m_result(true), 
             m_name(std::move(name)),
             m_executed(false) {
-                module->addTest(this);
+                container->addTest(this);
         }
         virtual ~UnitTest() = default;
 
@@ -43,16 +43,6 @@ class UnitTest {
         const std::string &getName() const { return m_name; }
         bool wasExecuted() const { return m_executed; }
         bool getResult() const { return m_result; }
-
-#define EXPECTED(exp, res) {                \
-        uint32_t line = __LINE__;           \
-        bool local_res = (exp) == (res);  \
-        if (!local_res) {                   \
-            std::cout << "    [+] Error on " << __FILE__ << ":" << std::to_string(line) << '\n' << \
-                "        Expected: " << stringify(exp) << " == " << stringify(res) << '\n';  \
-        }                                   \
-        m_result &= local_res;              \
-    }
 
         static const std::string &resultToString(bool res) {
             static const std::array<std::string, 2> strings{"FAIL","PASS"};
@@ -70,6 +60,16 @@ class UnitTest {
         bool m_executed;
 };
 
+#define EXPECT_EQUAL(exp, res) {            \
+        uint32_t line = __LINE__;           \
+        bool local_res = (exp) == (res);    \
+        if (!local_res) {                   \
+            std::cout << "[+] Error on " << __FILE__ << ":" << std::to_string(line) << '\n' << \
+                "    Expected: " << stringify(exp) << " == " << stringify(res) << '\n';  \
+        }                                   \
+        m_result &= local_res;              \
+    }
+
 #define UNIT_TEST(S, T)                                 \
     class __##T : public testing::UnitTest {            \
         public:                                         \
@@ -86,15 +86,20 @@ class TestModule : public TestsContainer {
         explicit TestModule(const std::string name) : m_name(std::move(name)) {}
         virtual ~TestModule() = default;
 
-        void run() {
-                std::cout << "=== Test Module " << m_name << " ===\n";
+        bool run() {
+            bool res = true;
+            std::cout << "=== Test Module " << m_name << " ===\n";
             for (auto *test : m_tests) {
-                std::cout << "    Executing " << m_name << "::" << test->getName() << '\n';
-                std::cout << "    " << UnitTest::resultToString(test->getResult()) << " " <<
+                std::cout << "Executing " << m_name << "::" << test->getName() << '\n';
+                test->run();
+                std::cout <<  UnitTest::resultToString(test->getResult()) << " " <<
                     m_name << "::" << test->getName() << '\n';
+                res &= test->getResult();
             }
 
             printLog();
+
+            return res;
         }
 
         void addTest(UnitTest *test) override {
@@ -116,7 +121,9 @@ class TestModule : public TestsContainer {
     
 };
 
-#define TEST_MODULE(S) testing::TestModule S{stringify(S)}
+#define TEST_MODULE(S)                      \
+    testing::TestModule S{stringify(S)};    \
+    int main() { return S.run() ? 0 : 1; }
 
 } // namespace testing
 
