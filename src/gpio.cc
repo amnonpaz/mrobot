@@ -51,7 +51,7 @@ bool Gpio::finalize() {
     return true;
 }
 
-bool Gpio::set(bool on) {
+bool Gpio::set(bool on) const {
     static const std::array<const char*, 2> strings{"0","1"};
 
     if (m_dir != DirectionOut) {

@@ -26,7 +26,7 @@ class Gpio {
 
         [[nodiscard]] bool init();
         [[nodiscard]] bool finalize();
-        [[nodiscard]] bool set(bool on);
+        [[nodiscard]] bool set(bool on) const;
 
     private:
         [[nodiscard]] bool pinExport();
@@ -37,7 +37,7 @@ class Gpio {
 
         uint32_t m_pin;
         Direction m_dir;
-        std::fstream m_valueEntry;
+        mutable std::fstream m_valueEntry;
 
         static const char *s_sysPrefix;
 };
