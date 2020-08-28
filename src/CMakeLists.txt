@@ -5,6 +5,7 @@ set(SOURCES
     main.cc
     gpio.cc
     conf.cc
+    led.cc
    )
 
 add_executable(${TARGET_NAME} ${SOURCES})
