@@ -7,16 +7,26 @@ namespace mrobot {
 
 namespace hw {
 
+Led::~Led() {
+    if (m_initialized) {
+        bool(finalize());
+    }
+}
+
 bool Led::init() {
     if (!m_gpio.init()) {
         return false;
     }
 
-    return set(OFF);
+    m_initialized = set(OFF);
+
+    return m_initialized;
 }
 
 bool Led::finalize() {
-    return m_gpio.init();
+    bool res = m_gpio.finalize();
+    m_initialized = false;
+    return res;
 }
 
 bool Led::set(State state) const {

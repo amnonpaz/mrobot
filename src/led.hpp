@@ -7,7 +7,7 @@ namespace mrobot {
 
 namespace hw {
 
-class Led {
+class Led final {
     public:
         enum State {
             OFF,
@@ -16,8 +16,9 @@ class Led {
 
         explicit Led(uint32_t gpioPin) :
             m_gpio(gpioPin, hw::Gpio::DirectionOut),
-            m_state(OFF) {}
-        ~Led() = default;
+            m_state(OFF),
+            m_initialized(false) {}
+        ~Led();
 
         [[nodiscard]] bool init();
         [[nodiscard]] bool finalize();
@@ -28,6 +29,7 @@ class Led {
     private:
         hw::Gpio m_gpio;
         mutable State m_state;
+        bool m_initialized;
 };
 
 } // namespace hw
