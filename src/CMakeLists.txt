@@ -3,6 +3,7 @@ set(TARGET_VERSION ${PROJECT_VERSION})
 
 set(SOURCES
     main.cc
+    robot.cc
     gpio.cc
     conf.cc
     led.cc
