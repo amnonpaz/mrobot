@@ -7,6 +7,7 @@ set(SOURCES
     gpio.cc
     conf.cc
     led.cc
+    mqtt_client.cc
    )
 
 add_executable(${TARGET_NAME} ${SOURCES})
