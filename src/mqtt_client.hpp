@@ -3,21 +3,54 @@
 
 #include "comm.hpp"
 
+#include <mosquitto.h>
+
 #include <list>
 
 namespace mrobot {
 
 namespace comm {
 
-class MosquittoClient final : public Client {
+class MqttSession {
     public:
-        MosquittoClient(std::string clientName,
+        MqttSession() {
+            ::mosquitto_lib_init();
+
+            int major, minor, revision;
+            ::mosquitto_lib_version(&major, &minor, &revision);
+            m_version = std::to_string(major) + "." + std::to_string(minor) +
+                        std::to_string(revision);
+        }
+
+        ~MqttSession() {
+            ::mosquitto_lib_cleanup();
+        }
+
+        const std::string &version() { return m_version; }
+
+        static std::shared_ptr<MqttSession> getSession() {
+            static std::shared_ptr<MqttSession> session{nullptr};
+            if (!session) {
+                session = std::make_shared<MqttSession>();
+            }
+
+            return session;
+        }
+
+    private:
+        std::string m_version;
+};
+
+class MqttClient final : public Client {
+    public:
+        MqttClient(std::string clientName,
                         std::string brokerAddress,
                         uint16_t brokerPort) :
             m_clientName(std::move(clientName)),
             m_brokerAddress(std::move(brokerAddress)),
-            m_brokerPort(brokerPort) {}
-        ~MosquittoClient() override = default;
+            m_brokerPort(brokerPort),
+            m_session(nullptr) {}
+        ~MqttClient() override = default;
 
         bool initialize() override ;
         void finalize() override ;
@@ -35,9 +68,10 @@ class MosquittoClient final : public Client {
         const std::string m_clientName;
         const std::string m_brokerAddress;
         const uint16_t m_brokerPort;
+        std::shared_ptr<MqttSession> m_session;
 
         std::list<Receiver *> m_receivers;
-        
+
 };
 
 } // namespace comm

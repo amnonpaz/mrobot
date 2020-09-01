@@ -4,29 +4,31 @@ namespace mrobot {
 
 namespace comm {
 
-bool MosquittoClient::initialize() {
+bool MqttClient::initialize() {
+    m_session = MqttSession::getSession();
+
     // TODO: implement
 
     return true;
 }
 
-void MosquittoClient::finalize() {
+void MqttClient::finalize() {
     // TODO: implement
 }
 
-bool MosquittoClient::connect() {
-    // TODO: implement
-
-    return true;
-}
-
-bool MosquittoClient::disconnect() {
+bool MqttClient::connect() {
     // TODO: implement
 
     return true;
 }
 
-bool MosquittoClient::send(std::shared_ptr<char> payload, ::size_t size) {
+bool MqttClient::disconnect() {
+    // TODO: implement
+
+    return true;
+}
+
+bool MqttClient::send(std::shared_ptr<char> payload, ::size_t size) {
     (void)(payload);
     (void)(size);
 
