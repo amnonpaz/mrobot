@@ -69,6 +69,7 @@ class MqttClient final : public Client {
         const std::string m_brokerAddress;
         const uint16_t m_brokerPort;
         std::shared_ptr<MqttSession> m_session;
+        ::mosquitto *m_mosq;
 
         std::list<Receiver *> m_receivers;
 
