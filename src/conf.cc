@@ -97,7 +97,7 @@ bool Database::parseKeyValue(const std::string &input,
         return false;
     }
 
-    key = input.substr(0, (idx > 0) ? (idx-1) : 0);
+    key = input.substr(0, (idx > 0) ? idx : 0);
     trimRight(key);
     if (key.empty()) {
         std::cout << "No key in \"" << input<< "\"\n";
