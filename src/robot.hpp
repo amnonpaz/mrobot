@@ -3,6 +3,7 @@
 
 #include "led.hpp"
 #include "conf.hpp"
+#include "comm.hpp"
 
 #include <string>
 #include <array>
@@ -29,12 +30,16 @@ class Robot final {
 
     private:
         bool initLights();
+        bool initComm();
 
         static const char *to_string(Light light);
 
         const std::string m_confFile;
         conf::Database m_configuration;
         std::array<std::unique_ptr<hw::Led>, LightMax> m_lights;
+
+        std::unique_ptr<comm::Client> m_comm;
+
 };
 
 } // namespace mrobot 

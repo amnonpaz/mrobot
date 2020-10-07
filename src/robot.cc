@@ -3,6 +3,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "mqtt_client.hpp"
+
 namespace mrobot {
     
 bool Robot::init()
@@ -14,6 +16,11 @@ bool Robot::init()
 
     if (!initLights()) {
         std::cout << "Error initializing lights" << '\n';
+        return false;
+    }
+
+    if (!initComm()) {
+        std::cout << "Error initializing communication" << '\n';
         return false;
     }
 
@@ -50,6 +57,41 @@ bool Robot::initLights() {
     }
 
     return res;
+}
+
+bool Robot::initComm() {
+    bool res = true;
+
+    const std::string clientName = m_configuration.get("mqtt_client_name"),
+                      brokerURL = m_configuration.get("mqtt_broker_url"),
+                      brokerPort = m_configuration.get("mqtt_broker_port");
+
+    if (clientName.empty()) {
+        std::cout << "No configuration for mqtt_client_name" << '\n';
+        res = false;
+    }
+
+    if (brokerURL.empty()) {
+        std::cout << "No configuration for mqtt_broker_url" << '\n';
+        res = false;
+    }
+
+    if (brokerPort.empty()) {
+        std::cout << "No configuration for mqtt_broker_port" << '\n';
+        res = false;
+    }
+
+    if (!res) {
+        return false;
+    }
+
+    uint32_t brokerPortUint;
+    std::stringstream sin(brokerPort);
+    sin >> brokerPortUint;
+
+    m_comm = std::make_unique<comm::MqttClient>(clientName, brokerURL, brokerPortUint);
+
+    return m_comm != nullptr;
 }
 
 const char *Robot::to_string(Light light) {

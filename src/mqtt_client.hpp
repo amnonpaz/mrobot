@@ -5,6 +5,9 @@
 
 #include <mosquitto.h>
 
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 #include <list>
 
 namespace mrobot {
@@ -44,8 +47,8 @@ class MqttSession {
 class MqttClient final : public Client {
     public:
         MqttClient(std::string clientName,
-                        std::string brokerAddress,
-                        uint16_t brokerPort) :
+                   std::string brokerAddress,
+                   uint16_t brokerPort) :
             m_clientName(std::move(clientName)),
             m_brokerAddress(std::move(brokerAddress)),
             m_brokerPort(brokerPort),
@@ -57,6 +60,7 @@ class MqttClient final : public Client {
 
         bool connect() override ;
         bool disconnect() override ;
+        inline void reconnect() { m_reconnector.reconnect(); }
 
         inline void addReceiver(Receiver *receiver) override {
             m_receivers.push_back(receiver);
@@ -65,6 +69,31 @@ class MqttClient final : public Client {
         bool send(std::shared_ptr<char> payload, ::size_t size) override ;
 
     private:
+        class ReconnectionThread {
+            public:
+                ReconnectionThread() :
+                    m_owner(nullptr),
+                    m_running(false),
+                    m_paused(true) {}
+                ~ReconnectionThread() = default;
+
+                bool start(::mosquitto *owner);
+                void stop();
+                void reconnect();
+
+            private:
+                void work();
+
+                std::thread m_thread;
+                std::mutex m_lock;
+                std::condition_variable m_cv;
+
+                ::mosquitto *m_owner;
+                bool m_running;
+                bool m_paused;
+                static constexpr uint32_t s_reconnectionInterval_ms = 2000;
+        };
+
         const std::string m_clientName;
         const std::string m_brokerAddress;
         const uint16_t m_brokerPort;
@@ -73,6 +102,8 @@ class MqttClient final : public Client {
 
         std::list<Receiver *> m_receivers;
 
+        ReconnectionThread m_reconnector;
+        static const uint32_t s_keepAlive_sec = 30;
 };
 
 } // namespace comm

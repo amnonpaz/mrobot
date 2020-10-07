@@ -11,6 +11,7 @@ set(SOURCES
    )
 
 set(LIBS
+    pthread
     mosquitto
    )
 
