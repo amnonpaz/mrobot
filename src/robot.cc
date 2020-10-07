@@ -6,11 +6,10 @@
 #include "mqtt_client.hpp"
 
 namespace mrobot {
-    
+
 bool Robot::init()
 {
     if (!m_configuration.addFile(m_confFile)) {
-        std::cout << "Error reading configuration file " << m_confFile << '\n';
         return false;
     }
 
@@ -45,7 +44,7 @@ bool Robot::initLights() {
         }
 
         std::stringstream sin(value);
-        uint32_t gpioNum; 
+        uint32_t gpioNum;
         sin >> gpioNum;
 
         m_lights[idx] = std::make_unique<hw::Led>(gpioNum);
@@ -96,7 +95,7 @@ bool Robot::initComm() {
 
 const char *Robot::to_string(Light light) {
     static const std::array<const char *, LightMax + 1> strings = {
-        "eye_right",            
+        "eye_right",
         "eye_left",
         "antena_right",
         "antena_left",
