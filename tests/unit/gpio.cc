@@ -11,7 +11,7 @@ namespace filesystem = std::experimental::filesystem;
 
 TEST_MODULE(GpioTestMoudle)
 
-static const std::string getDummyGpioPath(uint32_t pin) {
+static std::string getDummyGpioPath(uint32_t pin) {
     return std::string{std::string(SYSTEM_GPIO_PATH_PREFIX) + "gpio" + std::to_string(pin) + "/"};
 }
 
