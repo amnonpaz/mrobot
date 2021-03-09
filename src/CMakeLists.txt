@@ -7,6 +7,7 @@ set(SOURCES
     gpio.cc
     conf.cc
     led.cc
+    message.cc
     mqtt_client.cc
    )
 

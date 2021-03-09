@@ -9,3 +9,7 @@ add_unittest(TEST conf
              SOURCES conf.cc
              LIBS stdc++fs
              DEFINES DUMMY_CONF_PATH="/tmp/mrobot/conf/")
+
+add_unittest(TEST message
+             MAIN message.cc
+             SOURCES message.cc)
