@@ -9,7 +9,7 @@ namespace hw {
 
 Led::~Led() {
     if (m_initialized) {
-        bool(finalize());
+        (void)(finalize());
     }
 }
 
