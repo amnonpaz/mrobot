@@ -64,11 +64,11 @@ bool Gpio::set(bool on) const {
     return m_valueEntry.good();
 }
 
-bool Gpio::pinExport() {
+bool Gpio::pinExport() const {
     return writeToGpioEntry("export", std::to_string(m_pin));
 }
 
-bool Gpio::pinUnexport() {
+bool Gpio::pinUnexport() const {
     return writeToGpioEntry("unexport", std::to_string(m_pin));
 }
 

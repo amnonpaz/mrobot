@@ -29,8 +29,8 @@ class Gpio {
         [[nodiscard]] bool set(bool on) const;
 
     private:
-        [[nodiscard]] bool pinExport();
-        [[nodiscard]] bool pinUnexport();
+        [[nodiscard]] bool pinExport() const;
+        [[nodiscard]] bool pinUnexport() const;
         [[nodiscard]] bool setPinDirection();
         [[nodiscard]] bool writeToGpioEntry(const std::string &entry,
                                             const std::string &value);
