@@ -75,7 +75,7 @@ void MqttClient::ReconnectionThread::stop() {
 static void onConnect(mosquitto *mosq, void *obj, int rc) {
     (void)(mosq);
 
-    auto pClient = reinterpret_cast<MqttClient *>(obj);
+    auto *pClient = reinterpret_cast<MqttClient *>(obj);
 
     if (rc == 0) { // 0 == success
         std::cout << "Connected to broker" << '\n';
