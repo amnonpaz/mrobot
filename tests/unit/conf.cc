@@ -42,7 +42,7 @@ static bool writeConfFile(const std::string &filename,
 UNIT_TEST(ConfTestMoudle, BasicPassableConf) {
     static const std::string filename{std::string(DUMMY_CONF_PATH) + "conf.txt"};
     static const std::string data{
-        "first = 1st\n"
+        "first=1st\n"
         "  second   =   2nd   \n"
         "#third = 3rd\n"
         "   #third = 3rd\n"
