@@ -35,7 +35,8 @@ bool Database::addFile(const std::string &filename) {
             continue;
         }
 
-        std::string key, value;
+        std::string key;
+        std::string value;
         if (!Database::parseKeyValue(line, key, value)) {
             std::cout << "Erron in line #" << std::to_string(count) << '\n';
             res = false;
