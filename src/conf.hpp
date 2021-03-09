@@ -25,12 +25,12 @@ class Database {
         const std::string &get(const std::string &key);
 
     private:
-        std::string &trimLeft(std::string &str);
-        std::string &trimRight(std::string &str);
+        static std::string &trimLeft(std::string &str);
+        static std::string &trimRight(std::string &str);
 
-        bool parseKeyValue(const std::string &input,
-                           std::string &key,
-                           std::string &value);
+        static bool parseKeyValue(const std::string &input,
+                                  std::string &key,
+                                  std::string &value);
 
         std::map<const std::string, const std::string> m_map;
 
