@@ -81,9 +81,43 @@ class MessageThirdHandler : public mrobot::messaging::Handler {
         }
 };
 
+
+class TestMessagesFactory : public mrobot::messaging::Factory {
+    public:
+        TestMessagesFactory() = default; 
+        ~TestMessagesFactory() = default; 
+
+        unique_message_ptr create(uint32_t messageId,
+                                  const unsigned char *payload,
+                                  ::size_t size) const override
+        {
+            (void)(payload);
+            (void)(size);
+
+            unique_message_ptr pMessage{nullptr};
+
+            switch (messageId) {
+                case TestMessageTypeFirst: 
+                    pMessage = std::make_unique<MessageFirst>();
+                    break;
+                case TestMessageTypeSecond: 
+                    pMessage = std::make_unique<MessageSecond>();
+                    break;
+                case TestMessageTypeThird:
+                    pMessage = std::make_unique<MessageThird>();
+                    break;
+                default:
+                    break;
+            }
+
+            return pMessage;
+        }
+
+};
+
 class TestRouter : public mrobot::messaging::Router<TestMessageTypeMax> {
     public:
-        TestRouter() {
+        TestRouter() : Router(&m_testFactory) {
             registerHandler(TestMessageTypeFirst, &m_firstHandler);
             registerHandler(TestMessageTypeSecond, &m_secondHandler);
             registerHandler(TestMessageTypeThird, &m_thirdHandler);
@@ -92,37 +126,12 @@ class TestRouter : public mrobot::messaging::Router<TestMessageTypeMax> {
         virtual ~TestRouter() = default;
 
     private:
+        TestMessagesFactory m_testFactory;
         MessageFirstHandler m_firstHandler;
         MessageSecondHandler m_secondHandler;
         MessageThirdHandler m_thirdHandler;
 };
 
-
-unique_message_ptr factory(uint32_t messageId,
-                           const unsigned char *payload,
-                           ::size_t size)
-{
-    (void)(payload);
-    (void)(size);
-
-    unique_message_ptr pMessage{nullptr};
-
-    switch (messageId) {
-        case TestMessageTypeFirst: 
-            pMessage = std::make_unique<MessageFirst>();
-            break;
-        case TestMessageTypeSecond: 
-            pMessage = std::make_unique<MessageSecond>();
-            break;
-        case TestMessageTypeThird:
-            pMessage = std::make_unique<MessageThird>();
-            break;
-        default:
-            break;
-    }
-
-    return pMessage;
-}
 
 UNIT_TEST(MessageTestModule, BasicTest) {
 }

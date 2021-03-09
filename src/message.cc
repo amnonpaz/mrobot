@@ -34,7 +34,7 @@ void Router<N>::route(const unsigned char *payload, ::size_t size)
         return;
     }
 
-    auto messagePtr = factory(messageId, payload + sizeof(messageId), size - sizeof(messageId));
+    auto messagePtr = m_factory->create(messageId, payload + sizeof(messageId), size - sizeof(messageId));
     if (!messagePtr) {
         std::cout << "Routing error: Invalid message" << '\n';
         return;

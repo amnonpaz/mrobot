@@ -18,9 +18,16 @@ class Message {
         // virtual void serialize(std::vector<unsigned char> &buffer) const = 0;
 };
 
-std::unique_ptr<Message> factory(uint32_t messageId,
-                                 const unsigned char *payload,
-                                 ::size_t size);
+
+class Factory {
+    public:
+        Factory() = default;
+        ~Factory() = default;
+
+        virtual std::unique_ptr<Message> create(uint32_t messageId,
+                                                const unsigned char *payload,
+                                                ::size_t size) const = 0;
+};
 
 class Handler {
     public:
@@ -33,13 +40,15 @@ class Handler {
 template<uint32_t N>
 class Router {
     public:
-        Router() = default;
+        Router(const Factory *factory) :
+            m_factory(factory) {}
         virtual ~Router() = default;
 
         void registerHandler(uint32_t messageId, Handler *handler);
         void route(const unsigned char *payload, ::size_t size);
 
     private:
+        const Factory *m_factory;
         std::array<std::list<Handler *>, N> m_handlers;
 };
 
