@@ -32,8 +32,8 @@ class Gpio {
         [[nodiscard]] bool pinExport() const;
         [[nodiscard]] bool pinUnexport() const;
         [[nodiscard]] bool setPinDirection();
-        [[nodiscard]] bool writeToGpioEntry(const std::string &entry,
-                                            const std::string &value);
+        [[nodiscard]] static bool writeToGpioEntry(const std::string &entry,
+                                                   const std::string &value);
 
         uint32_t m_pin;
         Direction m_dir;
