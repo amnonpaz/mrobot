@@ -61,9 +61,9 @@ bool Robot::initLights() {
 bool Robot::initComm() {
     bool res = true;
 
-    const std::string clientName = m_configuration.get("mqtt_client_name"),
-                      brokerURL = m_configuration.get("mqtt_broker_url"),
-                      brokerPort = m_configuration.get("mqtt_broker_port");
+    auto clientName = m_configuration.get("mqtt_client_name");
+    auto brokerURL = m_configuration.get("mqtt_broker_url");
+    auto brokerPort = m_configuration.get("mqtt_broker_port");
 
     if (clientName.empty()) {
         std::cout << "No configuration for mqtt_client_name" << '\n';
