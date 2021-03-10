@@ -155,3 +155,18 @@ UNIT_TEST(MessageTestModule, BasicTest) {
     EXPECT_EQUAL(router.getThird(), INVALID_VALUE);
 }
 
+UNIT_TEST(MessageTestModule, InvalidRouting) {
+    TestRouter router;
+
+    const uint32_t dummy = 789;
+    const uint32_t invalidMessageId = TestMessageTypeMax + 1;
+
+    bool res = router.route(invalidMessageId, to_payload(&dummy), sizeof(dummy));
+    EXPECT_EQUAL(res, false);
+
+    res = router.route(TestMessageTypeThird, nullptr, sizeof(dummy));
+    EXPECT_EQUAL(res, false);
+
+    res = router.route(TestMessageTypeThird, to_payload(&dummy), 0);
+    EXPECT_EQUAL(res, false);
+}
