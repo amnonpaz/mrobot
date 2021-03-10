@@ -40,7 +40,7 @@ void Router<N>::route(const unsigned char *payload, ::size_t size)
         return;
     }
 
-    for (auto handler : m_handlers[messageId]) {
+    for (auto *handler : m_handlers[messageId]) {
         handler->handleMessage(messagePtr);
     }
 }
