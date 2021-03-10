@@ -118,6 +118,11 @@ class TestRouter final : public mrobot::messaging::Router {
 
 
 UNIT_TEST(MessageTestModule, BasicTest) {
+    TestRouter router;
+
+    const uint8_t firstData = 80;
+    router.route(TestMessageTypeFirst, reinterpret_cast<const unsigned char *>(&firstData), sizeof(firstData));
+    EXPECT_EQUAL(router.getFirst(), firstData);
 
 }
 
