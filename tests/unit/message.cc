@@ -6,6 +6,13 @@
 
 TEST_MODULE(MessageTestModule)
 
+#define INVALID_VALUE 99
+
+template<typename T>
+constexpr const unsigned char * to_payload(T *pData) {
+    return reinterpret_cast<const unsigned char *>(pData);
+}
+
 using unique_message_ptr = std::unique_ptr<mrobot::messaging::Message>;
 
 enum TestMessageType {
@@ -14,8 +21,6 @@ enum TestMessageType {
     TestMessageTypeThird,
     TestMessageTypeMax
 };
-
-#define INVALID_VALUE 99
 
 template<typename T>
 class TestMessage : public mrobot::messaging::Message {
@@ -129,12 +134,24 @@ UNIT_TEST(MessageTestModule, BasicTest) {
     const uint8_t firstData = 80;
     const uint16_t secondData = 80;
 
-    router.route(TestMessageTypeFirst, reinterpret_cast<const unsigned char *>(&firstData), sizeof(firstData));
+    bool res = router.route(TestMessageTypeFirst, to_payload(&firstData), sizeof(firstData));
+    EXPECT_EQUAL(res, true);
     EXPECT_EQUAL(router.getFirst(), firstData);
+    EXPECT_EQUAL(router.getSecond(), INVALID_VALUE);
+    EXPECT_EQUAL(router.getThird(), INVALID_VALUE);
 
     router.resetFirst();
-    router.route(TestMessageTypeFirst, reinterpret_cast<const unsigned char *>(&secondData), sizeof(secondData));
-    EXPECT_EQUAL(router.getFirst(), INVALID_VALUE);
 
+    res = router.route(TestMessageTypeFirst, to_payload(&secondData), sizeof(secondData));
+    EXPECT_EQUAL(res, false);
+    EXPECT_EQUAL(router.getFirst(), INVALID_VALUE);
+    EXPECT_EQUAL(router.getSecond(), INVALID_VALUE);
+    EXPECT_EQUAL(router.getThird(), INVALID_VALUE);
+
+    res = router.route(TestMessageTypeSecond, to_payload(&secondData), sizeof(secondData));
+    EXPECT_EQUAL(res, true);
+    EXPECT_EQUAL(router.getFirst(), INVALID_VALUE);
+    EXPECT_EQUAL(router.getSecond(), secondData);
+    EXPECT_EQUAL(router.getThird(), INVALID_VALUE);
 }
 
