@@ -15,6 +15,8 @@ enum TestMessageType {
     TestMessageTypeMax
 };
 
+#define INVALID_VALUE 99
+
 template<typename T>
 class TestMessage : public mrobot::messaging::Message {
     public:
@@ -34,7 +36,7 @@ class TestMessage : public mrobot::messaging::Message {
         T get() const { return m_data; }
 
     private:
-        T m_data = 0;
+        T m_data = INVALID_VALUE;
 };
 
 typedef TestMessage<uint8_t> MessageFirst;
@@ -54,10 +56,10 @@ class TestMessageHandler : public mrobot::messaging::Handler {
         }
 
         T get() const { return m_data; }
-        void reset() { m_data = 0; }
+        void reset() { m_data = INVALID_VALUE; }
 
     private:
-        T m_data = 0;
+        T m_data = INVALID_VALUE;
 };
 
 typedef TestMessageHandler<uint8_t, MessageFirst> MessageFirstHandler;
@@ -109,6 +111,10 @@ class TestRouter final : public mrobot::messaging::Router {
         uint16_t getSecond() { return m_secondHandler.get(); }
         uint32_t getThird() { return m_thirdHandler.get(); }
 
+        void resetFirst() { m_firstHandler.reset(); }
+        void resetSecond() { m_secondHandler.reset(); }
+        void resetThird() { m_thirdHandler.reset(); }
+
     private:
         TestMessagesFactory m_testFactory;
         MessageFirstHandler m_firstHandler;
@@ -121,8 +127,14 @@ UNIT_TEST(MessageTestModule, BasicTest) {
     TestRouter router;
 
     const uint8_t firstData = 80;
+    const uint16_t secondData = 80;
+
     router.route(TestMessageTypeFirst, reinterpret_cast<const unsigned char *>(&firstData), sizeof(firstData));
     EXPECT_EQUAL(router.getFirst(), firstData);
+
+    router.resetFirst();
+    router.route(TestMessageTypeFirst, reinterpret_cast<const unsigned char *>(&secondData), sizeof(secondData));
+    EXPECT_EQUAL(router.getFirst(), INVALID_VALUE);
 
 }
 
