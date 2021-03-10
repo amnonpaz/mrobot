@@ -107,24 +107,41 @@ class TestRouter final : public mrobot::messaging::Router {
         TestRouter() : Router(TestMessageTypeMax, &m_testFactory) {
             registerHandler(TestMessageTypeFirst, &m_firstHandler);
             registerHandler(TestMessageTypeSecond, &m_secondHandler);
-            registerHandler(TestMessageTypeThird, &m_thirdHandler);
+            for (auto &handler : m_thirdHandlers) {
+                registerHandler(TestMessageTypeThird, &handler);
+            }
         }
 
         virtual ~TestRouter() = default;
 
         uint8_t getFirst() { return m_firstHandler.get(); }
         uint16_t getSecond() { return m_secondHandler.get(); }
-        uint32_t getThird() { return m_thirdHandler.get(); }
+        bool validateThird(uint32_t value) {
+            bool res = true;
+
+            for (auto &handler : m_thirdHandlers) {
+                res = (handler.get() == value);
+                if (!res) {
+                    break;
+                }
+            }
+
+            return res;
+        }
 
         void resetFirst() { m_firstHandler.reset(); }
         void resetSecond() { m_secondHandler.reset(); }
-        void resetThird() { m_thirdHandler.reset(); }
+        void resetThird() {
+            for (auto &handler : m_thirdHandlers) {
+                registerHandler(TestMessageTypeThird, &handler);
+            }
+        }
 
     private:
         TestMessagesFactory m_testFactory;
         MessageFirstHandler m_firstHandler;
         MessageSecondHandler m_secondHandler;
-        MessageThirdHandler m_thirdHandler;
+        std::array<MessageThirdHandler, 4>  m_thirdHandlers;
 };
 
 
@@ -138,7 +155,7 @@ UNIT_TEST(MessageTestModule, BasicTest) {
     EXPECT_EQUAL(res, true);
     EXPECT_EQUAL(router.getFirst(), firstData);
     EXPECT_EQUAL(router.getSecond(), INVALID_VALUE);
-    EXPECT_EQUAL(router.getThird(), INVALID_VALUE);
+    EXPECT_EQUAL(router.validateThird(INVALID_VALUE), true);
 
     router.resetFirst();
 
@@ -146,13 +163,13 @@ UNIT_TEST(MessageTestModule, BasicTest) {
     EXPECT_EQUAL(res, false);
     EXPECT_EQUAL(router.getFirst(), INVALID_VALUE);
     EXPECT_EQUAL(router.getSecond(), INVALID_VALUE);
-    EXPECT_EQUAL(router.getThird(), INVALID_VALUE);
+    EXPECT_EQUAL(router.validateThird(INVALID_VALUE), true);
 
     res = router.route(TestMessageTypeSecond, to_payload(&secondData), sizeof(secondData));
     EXPECT_EQUAL(res, true);
     EXPECT_EQUAL(router.getFirst(), INVALID_VALUE);
     EXPECT_EQUAL(router.getSecond(), secondData);
-    EXPECT_EQUAL(router.getThird(), INVALID_VALUE);
+    EXPECT_EQUAL(router.validateThird(INVALID_VALUE), true);
 }
 
 UNIT_TEST(MessageTestModule, InvalidRouting) {
@@ -169,4 +186,16 @@ UNIT_TEST(MessageTestModule, InvalidRouting) {
 
     res = router.route(TestMessageTypeThird, to_payload(&dummy), 0);
     EXPECT_EQUAL(res, false);
+}
+
+UNIT_TEST(MessageTestModule, MultipleHandlers) {
+    TestRouter router;
+
+    const uint32_t data = 789;
+
+    bool res = router.route(TestMessageTypeThird, to_payload(&data), sizeof(data));
+    EXPECT_EQUAL(res, true);
+    EXPECT_EQUAL(router.getFirst(), INVALID_VALUE);
+    EXPECT_EQUAL(router.getSecond(), INVALID_VALUE);
+    EXPECT_EQUAL(router.validateThird(data), true);
 }
