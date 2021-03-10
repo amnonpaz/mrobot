@@ -45,7 +45,7 @@ class Router {
         virtual ~Router() = default;
 
         void registerHandler(uint32_t messageId, Handler *handler);
-        void route(uint32_t messageId, const unsigned char *payload, ::size_t size);
+        bool route(uint32_t messageId, const unsigned char *payload, ::size_t size);
 
     private:
         const Factory *m_factory;
