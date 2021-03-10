@@ -37,19 +37,19 @@ class Handler {
         virtual void handleMessage(const std::unique_ptr<Message> &message) = 0;
 };
 
-template<uint32_t N>
 class Router {
     public:
-        Router(const Factory *factory) :
-            m_factory(factory) {}
+        Router(uint32_t maxMessageId, const Factory *factory) :
+            m_factory(factory),
+            m_handlers(static_cast<::size_t>(maxMessageId)) {}
         virtual ~Router() = default;
 
         void registerHandler(uint32_t messageId, Handler *handler);
-        void route(const unsigned char *payload, ::size_t size);
+        void route(uint32_t messageId, const unsigned char *payload, ::size_t size);
 
     private:
         const Factory *m_factory;
-        std::array<std::list<Handler *>, N> m_handlers;
+        std::vector<std::list<Handler *>> m_handlers;
 };
 
 } // namespace messaging

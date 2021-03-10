@@ -9,98 +9,77 @@ TEST_MODULE(MessageTestModule)
 using unique_message_ptr = std::unique_ptr<mrobot::messaging::Message>;
 
 enum TestMessageType {
-    TestMessageTypeFirst, 
-    TestMessageTypeSecond, 
-    TestMessageTypeThird, 
+    TestMessageTypeFirst,
+    TestMessageTypeSecond,
+    TestMessageTypeThird,
     TestMessageTypeMax
 };
 
-class MessageFirst : public mrobot::messaging::Message {
+template<typename T>
+class TestMessage : public mrobot::messaging::Message {
     public:
-        MessageFirst() = default;
-        virtual ~MessageFirst() = default;
+        TestMessage() = default;
+        virtual ~TestMessage() = default;
 
         bool deserialize(const unsigned char *payload, ::size_t size) override {
-            (void)(payload);
-            (void)(size);
+            if (size != sizeof(m_data)) {
+                return false;
+            }
+
+           m_data = *reinterpret_cast<const T *>(payload);
+
             return true;
         }
+
+        T get() const { return m_data; }
+
+    private:
+        T m_data = 0;
 };
 
-class MessageFirstHandler : public mrobot::messaging::Handler {
+typedef TestMessage<uint8_t> MessageFirst;
+typedef TestMessage<uint16_t> MessageSecond;
+typedef TestMessage<uint32_t> MessageThird;
+
+template<typename T, class M>
+class TestMessageHandler : public mrobot::messaging::Handler {
     public:
-        MessageFirstHandler() = default;
-        virtual ~MessageFirstHandler() = default;
+        TestMessageHandler() = default;
+
+        virtual ~TestMessageHandler() = default;
 
         void handleMessage(const unique_message_ptr &message) override {
-            (void)(message);
+            auto *privMessage = dynamic_cast<const M *>(message.get());
+            m_data = privMessage->get();
         }
+
+        T get() const { return m_data; }
+        void reset() { m_data = 0; }
+
+    private:
+        T m_data = 0;
 };
 
-class MessageSecond : public mrobot::messaging::Message {
-    public:
-        MessageSecond() = default;
-        virtual ~MessageSecond() = default;
-
-        bool deserialize(const unsigned char *payload, ::size_t size) override {
-            (void)(payload);
-            (void)(size);
-            return true;
-        }
-};
-
-class MessageSecondHandler : public mrobot::messaging::Handler {
-    public:
-        MessageSecondHandler() = default;
-        virtual ~MessageSecondHandler() = default;
-
-        void handleMessage(const unique_message_ptr &message) override {
-            (void)(message);
-        }
-};
-
-class MessageThird : public mrobot::messaging::Message {
-    public:
-        MessageThird() = default;
-        virtual ~MessageThird() = default;
-
-        bool deserialize(const unsigned char *payload, ::size_t size) override {
-            (void)(payload);
-            (void)(size);
-            return true;
-        }
-};
-
-class MessageThirdHandler : public mrobot::messaging::Handler {
-    public:
-        MessageThirdHandler() = default;
-        virtual ~MessageThirdHandler() = default;
-
-        void handleMessage(const unique_message_ptr &message) override {
-            (void)(message);
-        }
-};
-
+typedef TestMessageHandler<uint8_t, MessageFirst> MessageFirstHandler;
+typedef TestMessageHandler<uint16_t, MessageSecond> MessageSecondHandler;
+typedef TestMessageHandler<uint32_t, MessageThird> MessageThirdHandler;
 
 class TestMessagesFactory : public mrobot::messaging::Factory {
     public:
-        TestMessagesFactory() = default; 
-        ~TestMessagesFactory() = default; 
+        TestMessagesFactory() = default;
+        ~TestMessagesFactory() = default;
 
         unique_message_ptr create(uint32_t messageId,
                                   const unsigned char *payload,
                                   ::size_t size) const override
         {
-            (void)(payload);
-            (void)(size);
-
             unique_message_ptr pMessage{nullptr};
 
             switch (messageId) {
-                case TestMessageTypeFirst: 
+                case TestMessageTypeFirst:
                     pMessage = std::make_unique<MessageFirst>();
                     break;
-                case TestMessageTypeSecond: 
+                case TestMessageTypeSecond:
                     pMessage = std::make_unique<MessageSecond>();
                     break;
                 case TestMessageTypeThird:
@@ -110,20 +89,25 @@ class TestMessagesFactory : public mrobot::messaging::Factory {
                     break;
             }
 
-            return pMessage;
+            return pMessage->deserialize(payload, size) ?
+                   std::move(pMessage) : unique_message_ptr{nullptr};
         }
 
 };
 
-class TestRouter : public mrobot::messaging::Router<TestMessageTypeMax> {
+class TestRouter final : public mrobot::messaging::Router {
     public:
-        TestRouter() : Router(&m_testFactory) {
+        TestRouter() : Router(TestMessageTypeMax, &m_testFactory) {
             registerHandler(TestMessageTypeFirst, &m_firstHandler);
             registerHandler(TestMessageTypeSecond, &m_secondHandler);
             registerHandler(TestMessageTypeThird, &m_thirdHandler);
         }
 
         virtual ~TestRouter() = default;
+
+        uint8_t getFirst() { return m_firstHandler.get(); }
+        uint16_t getSecond() { return m_secondHandler.get(); }
+        uint32_t getThird() { return m_thirdHandler.get(); }
 
     private:
         TestMessagesFactory m_testFactory;
@@ -134,4 +118,6 @@ class TestRouter : public mrobot::messaging::Router<TestMessageTypeMax> {
 
 
 UNIT_TEST(MessageTestModule, BasicTest) {
+
 }
+
