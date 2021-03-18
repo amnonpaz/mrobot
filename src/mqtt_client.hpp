@@ -66,7 +66,8 @@ class MqttClient final : public Client {
             m_receivers.push_back(receiver);
         }
 
-        bool send(std::shared_ptr<char> payload, ::size_t size) override ;
+        bool send(std::shared_ptr<std::vector<unsigned char>> payload, ::size_t size) override ;
+        void receive(const unsigned char *payload, ::size_t size);
 
     private:
         class ReconnectionThread {

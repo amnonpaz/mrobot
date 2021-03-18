@@ -2,6 +2,7 @@
 #define COMMUNICATION_H_
 
 #include <memory>
+#include <vector>
 
 namespace mrobot {
 
@@ -12,7 +13,7 @@ class Receiver {
         Receiver() = default;
         virtual ~Receiver() = default;
 
-        virtual void receive(std::shared_ptr<char> payload, ::size_t size) = 0;
+        virtual void receive(std::shared_ptr<unsigned char> payload, ::size_t size) = 0;
 };
 
 class Client {
@@ -28,7 +29,7 @@ class Client {
 
         virtual void addReceiver(Receiver *receiver) = 0;
 
-        virtual bool send(std::shared_ptr<char> payload, ::size_t size) = 0;
+        virtual bool send(std::shared_ptr<std::vector<unsigned char>> payload, ::size_t size) = 0;
 };
 
 } // namespace comm

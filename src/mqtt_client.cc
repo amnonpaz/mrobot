@@ -85,6 +85,15 @@ static void onConnect(mosquitto *mosq, void *obj, int rc) {
     }
 }
 
+static void onMessage(struct mosquitto *mosq,
+                      void *obj,
+                      const struct mosquitto_message *msg) {
+    (void)(mosq);
+
+    auto *pClient = reinterpret_cast<MqttClient *>(obj);
+    pClient->receive(reinterpret_cast<unsigned char *>(msg->payload), msg->payloadlen);
+}
+
 bool MqttClient::initialize() {
     m_session = MqttSession::getSession();
     if (!m_session) {
@@ -99,11 +108,13 @@ bool MqttClient::initialize() {
     }
 
     mosquitto_connect_callback_set(m_mosq, onConnect);
+    mosquitto_message_callback_set(m_mosq, onMessage);
 
     return true;
 }
 
 void MqttClient::finalize() {
+    disconnect();
     ::mosquitto_destroy(m_mosq);
 }
 
@@ -131,21 +142,27 @@ bool MqttClient::disconnect() {
     int rc = ::mosquitto_disconnect(m_mosq);
     if (rc == MOSQ_ERR_SUCCESS) {
         std::cout << "Mosquitto client disconnected" << '\n';
-        m_reconnector.stop();
     } else if (rc == MOSQ_ERR_NO_CONN) {
         std::cout << "Mosquitto client already diconnected" << '\n';
     }
 
+    m_reconnector.stop();
+
     return (rc == MOSQ_ERR_SUCCESS);
 }
 
-bool MqttClient::send(std::shared_ptr<char> payload, ::size_t size) {
+bool MqttClient::send(std::shared_ptr<std::vector<unsigned char>> payload, ::size_t size) {
     (void)(payload);
     (void)(size);
 
     // TODO: implement
 
     return true;
+}
+
+void MqttClient::receive(const unsigned char *payload, ::size_t size) {
+    (void)(payload);
+    (void)(size);
 }
 
 } // namespace comm
