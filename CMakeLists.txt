@@ -5,11 +5,12 @@ project(mrobot
         LANGUAGES CXX)
 
 option(UNITTESTS "Build unittests" OFF)
+option(NETWORKING_TESTS "Build networking tests" OFF)
 
 include(cmake/env.cmake)
 
 set(TESTING FALSE)
-if(UNITTESTS)
+if(UNITTESTS OR NETWORKING_TESTS)
     set(TESTING TRUE)
 endif()
 
