@@ -34,5 +34,8 @@
 # vim
 *.swp
 
+# tags
+tags
+
 # CMake
 build/
