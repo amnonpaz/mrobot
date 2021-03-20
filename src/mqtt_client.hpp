@@ -44,14 +44,54 @@ class MqttSession {
         std::string m_version;
 };
 
+
+class ConnectionThread {
+    public:
+        ConnectionThread(std::string brokerAddress,
+                         uint16_t brokerPort) :
+            m_brokerAddress(std::move(brokerAddress)),
+            m_brokerPort(brokerPort),
+            m_owner(nullptr),
+            m_running(false),
+            m_paused(false),
+            m_firstConnectionAttempt(true),
+            m_reconectionsCount(0) {}
+        ~ConnectionThread() = default;
+
+        bool start(::mosquitto *owner);
+        void stop();
+        void reconnect();
+
+    private:
+        bool connect();
+        void disconnect();
+        void work();
+
+        std::thread m_thread;
+        std::mutex m_lock;
+        std::condition_variable m_cv;
+
+        const std::string m_brokerAddress;
+        const uint16_t m_brokerPort;
+
+        ::mosquitto *m_owner;
+        bool m_running;
+        bool m_paused;
+        bool m_firstConnectionAttempt;
+        uint32_t m_reconectionsCount;
+        static constexpr uint32_t s_reconnectionInterval_ms = 30000;
+        static constexpr uint32_t s_keepAlive_sec = 30;
+};
+
+
 class MqttClient final : public Client {
     public:
         MqttClient(std::string clientName,
                    std::string brokerAddress,
                    uint16_t brokerPort) :
             m_clientName(std::move(clientName)),
-            m_brokerAddress(std::move(brokerAddress)),
-            m_brokerPort(brokerPort),
+            m_connector(std::move(brokerAddress),
+                        std::move(brokerPort)),
             m_session(nullptr) {}
         ~MqttClient() override = default;
 
@@ -60,7 +100,7 @@ class MqttClient final : public Client {
 
         bool connect() override ;
         bool disconnect() override ;
-        inline void reconnect() { m_reconnector.reconnect(); }
+        inline void reconnect() { m_connector.reconnect(); }
 
         inline void addReceiver(Receiver *receiver) override {
             m_receivers.push_back(receiver);
@@ -70,41 +110,12 @@ class MqttClient final : public Client {
         void receive(const unsigned char *payload, ::size_t size);
 
     private:
-        class ReconnectionThread {
-            public:
-                ReconnectionThread() :
-                    m_owner(nullptr),
-                    m_running(false),
-                    m_paused(true) {}
-                ~ReconnectionThread() = default;
-
-                bool start(::mosquitto *owner);
-                void stop();
-                void reconnect();
-
-            private:
-                void work();
-
-                std::thread m_thread;
-                std::mutex m_lock;
-                std::condition_variable m_cv;
-
-                ::mosquitto *m_owner;
-                bool m_running;
-                bool m_paused;
-                static constexpr uint32_t s_reconnectionInterval_ms = 2000;
-        };
-
         const std::string m_clientName;
-        const std::string m_brokerAddress;
-        const uint16_t m_brokerPort;
+        ConnectionThread m_connector;
         std::shared_ptr<MqttSession> m_session;
         ::mosquitto *m_mosq;
 
         std::list<Receiver *> m_receivers;
-
-        ReconnectionThread m_reconnector;
-        static const uint32_t s_keepAlive_sec = 30;
 };
 
 } // namespace comm

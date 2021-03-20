@@ -10,28 +10,65 @@ namespace mrobot {
 
 namespace comm {
 
-void MqttClient::ReconnectionThread::work() {
-    while (true) {
-        {
-            std::unique_lock<std::mutex> _lk(m_lock);
-            m_cv.wait_for(_lk, s_reconnectionInterval_ms*1ms,
-                    [&]() { return m_running && !m_paused; });
+void ConnectionThread::work() {
+    std::unique_lock<std::mutex> _lk(m_lock);
 
-            if (!m_running) {
-                std::cout << "Exiting reconnection loop" << '\n';
-                break;
-            }
-        }
+    while (m_running) {
+        // if connect succeeds, we're waiting for on-connect result
+        m_paused = connect();
 
-        std::cout << "Trying to reconnect..." << '\n';
-        int rc = ::mosquitto_reconnect(m_owner);
-        if (rc == MOSQ_ERR_SUCCESS) {
-            m_paused = true;
+        //auto now = std::chrono::system_clock::now();
+        m_cv.wait_for(_lk, s_reconnectionInterval_ms*1ms,
+                      [&]() { return !m_running; });
+
+        if (!m_running) {
+            std::cout << "Exiting connection loop" << '\n';
+            break;
         }
+    }
+
+    disconnect();
+}
+
+bool ConnectionThread::connect() {
+    int res = 0;
+
+    if (m_firstConnectionAttempt) {
+        std::cout << "Trying to connect..." << '\n';
+        res = ::mosquitto_connect(m_owner,
+                                  m_brokerAddress.c_str(),
+                                  m_brokerPort,
+                                  s_keepAlive_sec);
+    } else {
+        m_reconectionsCount++;
+        std::cout << "Trying to reconnect [" << m_reconectionsCount << "]..." << '\n';
+        res = ::mosquitto_reconnect(m_owner);
+        m_firstConnectionAttempt = false;
+    }
+
+    if (res == MOSQ_ERR_INVAL) {
+        std::cout << "Invalid connection parameters" << '\n';
+    } else if (res == MOSQ_ERR_ERRNO) {
+        std::cout << "Failed to connect to host: " << strerror(errno) << '\n';
+    } else if (res == MOSQ_ERR_SUCCESS) {
+        std::cout << "Connected to broker" << '\n';
+    } else {
+        std::cout << "Connect returned error: " << ::strerror(res) << '\n';
+    }
+
+    return res == MOSQ_ERR_SUCCESS;
+}
+
+void ConnectionThread::disconnect() {
+    int rc = ::mosquitto_disconnect(m_owner);
+    if (rc == MOSQ_ERR_SUCCESS) {
+        std::cout << "Mosquitto client disconnected" << '\n';
+    } else if (rc == MOSQ_ERR_NO_CONN) {
+        std::cout << "Mosquitto client already diconnected" << '\n';
     }
 }
 
-void MqttClient::ReconnectionThread::reconnect() {
+void ConnectionThread::reconnect() {
     {
         std::unique_lock<std::mutex> _lk(m_lock);
         m_paused = false;
@@ -39,7 +76,7 @@ void MqttClient::ReconnectionThread::reconnect() {
     m_cv.notify_all();
 }
 
-bool MqttClient::ReconnectionThread::start(::mosquitto *owner) {
+bool ConnectionThread::start(::mosquitto *owner) {
     std::unique_lock<std::mutex> _lk(m_lock);
     if (m_running) {
         return true;
@@ -48,16 +85,16 @@ bool MqttClient::ReconnectionThread::start(::mosquitto *owner) {
     m_owner = owner;
     m_running = true;
     try {
-        m_thread = std::thread(&ReconnectionThread::work, this);
+        m_thread = std::thread(&ConnectionThread::work, this);
     } catch (...) {
-        std::cout << "Failed creating reconnection thread" << '\n';
+        std::cout << "Failed creating connection thread" << '\n';
         m_running = false;
     }
 
     return m_running;
 }
 
-void MqttClient::ReconnectionThread::stop() {
+void ConnectionThread::stop() {
     {
         std::unique_lock<std::mutex> _lk(m_lock);
         if (!m_running) {
@@ -101,7 +138,7 @@ bool MqttClient::initialize() {
         return false;
     }
 
-    m_mosq = ::mosquitto_new(m_clientName.c_str(), true, this);
+    m_mosq = std::move(::mosquitto_new(m_clientName.c_str(), true, this));
     if (m_mosq == nullptr) {
         std::cout << "Error creating new mosquitto client" << '\n';
         return false;
@@ -119,36 +156,20 @@ void MqttClient::finalize() {
 }
 
 bool MqttClient::connect() {
-    if (!m_reconnector.start(m_mosq)) {
+    if (!m_connector.start(m_mosq)) {
+        std::cout << "Failed to start connection thread" << '\n';
         return false;
     }
 
-    int res = ::mosquitto_connect(m_mosq,
-                                  m_brokerAddress.c_str(),
-                                  m_brokerPort,
-                                  s_keepAlive_sec);
-    if (res == MOSQ_ERR_INVAL) {
-        std::cout << "Invalid connection parameters" << '\n';
-    } else if (res == MOSQ_ERR_ERRNO) {
-        std::cout << "Failed to connect to host: " << strerror(errno) << '\n';
-    } else if (res == MOSQ_ERR_SUCCESS) {
-        std::cout << "Connected to host, waiting for broker connection..." << '\n';
-    }
+    std::cout << "Connection thread started" << '\n';
 
-    return res == MOSQ_ERR_SUCCESS;
+    return true;
 }
 
 bool MqttClient::disconnect() {
-    int rc = ::mosquitto_disconnect(m_mosq);
-    if (rc == MOSQ_ERR_SUCCESS) {
-        std::cout << "Mosquitto client disconnected" << '\n';
-    } else if (rc == MOSQ_ERR_NO_CONN) {
-        std::cout << "Mosquitto client already diconnected" << '\n';
-    }
+    m_connector.stop();
 
-    m_reconnector.stop();
-
-    return (rc == MOSQ_ERR_SUCCESS);
+    return true;
 }
 
 bool MqttClient::send(std::shared_ptr<std::vector<unsigned char>> payload, ::size_t size) {
