@@ -1,3 +1,6 @@
+#ifndef MESSAGE_H_
+#define MESSAGE_H_
+
 #include <vector>
 #include <array>
 #include <list>
@@ -48,3 +51,5 @@ class Router {
 } // namespace messaging
 
 } // namespace mrobot
+
+#endif // MESSAGE_H_
