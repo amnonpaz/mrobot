@@ -26,7 +26,7 @@ bool Router::route(uint32_t messageId, const unsigned char *payload, ::size_t si
         return false;
     }
 
-    auto messagePtr = m_factory->create(messageId, payload, size);
+    auto messagePtr = factory(messageId, payload, size);
     if (!messagePtr) {
         std::cout << "Routing error: Invalid message" << '\n';
         return false;

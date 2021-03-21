@@ -19,16 +19,6 @@ class Message {
 };
 
 
-class Factory {
-    public:
-        Factory() = default;
-        ~Factory() = default;
-
-        virtual std::unique_ptr<Message> create(uint32_t messageId,
-                                                const unsigned char *payload,
-                                                ::size_t size) const = 0;
-};
-
 class Handler {
     public:
         Handler() = default;
@@ -39,16 +29,19 @@ class Handler {
 
 class Router {
     public:
-        Router(uint32_t maxMessageId, const Factory *factory) :
-            m_factory(factory),
+        Router(uint32_t maxMessageId) :
             m_handlers(static_cast<::size_t>(maxMessageId)) {}
         virtual ~Router() = default;
 
         void registerHandler(uint32_t messageId, Handler *handler);
         bool route(uint32_t messageId, const unsigned char *payload, ::size_t size);
 
+    protected:
+        virtual std::unique_ptr<Message> factory(uint32_t messageId,
+                                                 const unsigned char *payload,
+                                                 ::size_t size) const = 0;
+
     private:
-        const Factory *m_factory;
         std::vector<std::list<Handler *>> m_handlers;
 };
 

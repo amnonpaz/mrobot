@@ -71,40 +71,9 @@ typedef TestMessageHandler<uint8_t, MessageFirst> MessageFirstHandler;
 typedef TestMessageHandler<uint16_t, MessageSecond> MessageSecondHandler;
 typedef TestMessageHandler<uint32_t, MessageThird> MessageThirdHandler;
 
-class TestMessagesFactory : public mrobot::messaging::Factory {
-    public:
-        TestMessagesFactory() = default;
-        ~TestMessagesFactory() = default;
-
-        unique_message_ptr create(uint32_t messageId,
-                                  const unsigned char *payload,
-                                  ::size_t size) const override
-        {
-            unique_message_ptr pMessage{nullptr};
-
-            switch (messageId) {
-                case TestMessageTypeFirst:
-                    pMessage = std::make_unique<MessageFirst>();
-                    break;
-                case TestMessageTypeSecond:
-                    pMessage = std::make_unique<MessageSecond>();
-                    break;
-                case TestMessageTypeThird:
-                    pMessage = std::make_unique<MessageThird>();
-                    break;
-                default:
-                    break;
-            }
-
-            return pMessage->deserialize(payload, size) ?
-                   std::move(pMessage) : unique_message_ptr{nullptr};
-        }
-
-};
-
 class TestRouter final : public mrobot::messaging::Router {
     public:
-        TestRouter() : Router(TestMessageTypeMax, &m_testFactory) {
+        TestRouter() : Router(TestMessageTypeMax) {
             registerHandler(TestMessageTypeFirst, &m_firstHandler);
             registerHandler(TestMessageTypeSecond, &m_secondHandler);
             for (auto &handler : m_thirdHandlers) {
@@ -137,8 +106,31 @@ class TestRouter final : public mrobot::messaging::Router {
             }
         }
 
+        unique_message_ptr factory(uint32_t messageId,
+                                  const unsigned char *payload,
+                                  ::size_t size) const override
+        {
+            unique_message_ptr pMessage{nullptr};
+
+            switch (messageId) {
+                case TestMessageTypeFirst:
+                    pMessage = std::make_unique<MessageFirst>();
+                    break;
+                case TestMessageTypeSecond:
+                    pMessage = std::make_unique<MessageSecond>();
+                    break;
+                case TestMessageTypeThird:
+                    pMessage = std::make_unique<MessageThird>();
+                    break;
+                default:
+                    break;
+            }
+
+            return pMessage->deserialize(payload, size) ?
+                   std::move(pMessage) : unique_message_ptr{nullptr};
+        }
+
     private:
-        TestMessagesFactory m_testFactory;
         MessageFirstHandler m_firstHandler;
         MessageSecondHandler m_secondHandler;
         std::array<MessageThirdHandler, 4>  m_thirdHandlers;
