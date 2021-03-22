@@ -4,6 +4,7 @@
 #include "led.hpp"
 #include "conf.hpp"
 #include "comm.hpp"
+#include "robot_messages_router.hpp"
 
 #include <string>
 #include <array>
@@ -39,6 +40,7 @@ class Robot final {
         std::array<std::unique_ptr<hw::Led>, LightMax> m_lights;
 
         std::unique_ptr<comm::Client> m_comm;
+        const RobotMessagesRouter m_messagesRouter;
 
 };
 

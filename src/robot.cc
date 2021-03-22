@@ -88,7 +88,10 @@ bool Robot::initComm() {
     std::stringstream sin(brokerPort);
     sin >> brokerPortUint;
 
-    m_comm = std::make_unique<comm::MqttClient>(clientName, brokerURL, brokerPortUint);
+    m_comm = std::make_unique<comm::MqttClient>(clientName,
+                                                brokerURL,
+                                                brokerPortUint,
+                                                &m_messagesRouter);
 
     return m_comm != nullptr;
 }
