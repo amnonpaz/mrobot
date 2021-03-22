@@ -6,6 +6,80 @@
 #include <cstring>
 #include <signal.h>
 
+
+class MessageEcho final : public mrobot::messaging::Message {
+    public:
+        MessageEcho() = default;
+        virtual ~MessageEcho() = default;
+
+        bool deserialize(const unsigned char *payload, ::size_t size) override {
+            try {
+                m_data.reserve(size);
+            } catch (...) {
+                std::cout << "Failed allocating echo message" << '\n';
+                return false;
+            }
+
+            ::memcpy(m_data.data(), payload, truncSize(size));
+            return true;
+        }
+
+        std::vector<unsigned char> getData() const {
+            return m_data;
+        }
+
+    private:
+        std::vector<unsigned char> m_data;
+        static const ::size_t maxSize = 128;
+        static constexpr ::size_t truncSize(::size_t size) {
+            return (size < maxSize) ? size : maxSize;
+        }
+};
+
+class TestMqttRouter final : public mrobot::comm::MqttRouter {
+    public:
+        TestMqttRouter() : MqttRouter(MessageTypeMax) {}
+        ~TestMqttRouter() = default;
+
+    private:
+        std::unique_ptr<mrobot::messaging::Message> factory(uint32_t messageId,
+                                                            const unsigned char *payload,
+                                                            ::size_t size) const override {
+            std::unique_ptr<mrobot::messaging::Message> message = nullptr;
+
+            switch (messageId) {
+                case MessageTypeEcho:
+                    message = std::make_unique<MessageEcho>();
+                    break;
+                default:
+                    std::cout << "Unknown message ID " << messageId << '\n';
+                    break;
+            }
+
+            if (message && !message->deserialize(payload, size)) {
+                std::cout << "Failed deserializing message" << '\n';
+                message = nullptr;
+            }
+
+            return message;
+        }
+
+        uint32_t topicToMessageId(const std::string &topic) const override {
+            uint32_t messageId = MessageTypeMax;
+
+            if (topic == "echo") {
+                messageId = MessageTypeEcho;
+            }
+
+            return messageId;
+        }
+
+        enum MessageTypes {
+            MessageTypeEcho,
+            MessageTypeMax
+        };
+};
+
 class Test {
     public:
         Test(std::string clientName, std::string brokerAddress, uint16_t brokerPort);
@@ -18,6 +92,7 @@ class Test {
         const std::string m_clientName;
         const std::string m_brokerAddress;
         const uint16_t m_brokerPort;
+        const TestMqttRouter m_router;
         bool m_running;
 };
 
@@ -31,7 +106,10 @@ Test::Test(std::string clientName, std::string brokerAddress, uint16_t brokerPor
 bool Test::start() const {
     std::cout << "Test MqTT client starting" << '\n';
 
-    std::unique_ptr<mrobot::comm::Client> client = std::make_unique<mrobot::comm::MqttClient>(m_clientName, m_brokerAddress, m_brokerPort);
+    auto client = std::make_unique<mrobot::comm::MqttClient>(m_clientName,
+                                                             m_brokerAddress,
+                                                             m_brokerPort,
+                                                             &m_router);
     if (!client) {
         std::cout << "Failed allocating new client" << '\n';
         return false;
