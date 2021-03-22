@@ -10,125 +10,39 @@ namespace mrobot {
 
 namespace comm {
 
-void ConnectionThread::work() {
-    std::unique_lock<std::mutex> _lk(m_lock);
-
-    while (m_running) {
-        // if connect succeeds, we're waiting for on-connect result
-        m_paused = connect();
-
-        //auto now = std::chrono::system_clock::now();
-        m_cv.wait_for(_lk, s_reconnectionInterval_ms*1ms,
-                      [&]() { return !m_running; });
-
-        if (!m_running) {
-            std::cout << "Exiting connection loop" << '\n';
-            break;
-        }
-    }
-
-    disconnect();
-}
-
-bool ConnectionThread::connect() {
-    int res = 0;
-
-    if (m_firstConnectionAttempt) {
-        std::cout << "Trying to connect..." << '\n';
-        res = ::mosquitto_connect(m_owner,
-                                  m_brokerAddress.c_str(),
-                                  m_brokerPort,
-                                  s_keepAlive_sec);
-    } else {
-        m_reconectionsCount++;
-        std::cout << "Trying to reconnect [" << m_reconectionsCount << "]..." << '\n';
-        res = ::mosquitto_reconnect(m_owner);
-        m_firstConnectionAttempt = false;
-    }
-
-    if (res == MOSQ_ERR_INVAL) {
-        std::cout << "Invalid connection parameters" << '\n';
-    } else if (res == MOSQ_ERR_ERRNO) {
-        std::cout << "Failed to connect to host: " << strerror(errno) << '\n';
-    } else if (res == MOSQ_ERR_SUCCESS) {
-        std::cout << "Connected to broker" << '\n';
-    } else {
-        std::cout << "Connect returned error: " << ::strerror(res) << '\n';
-    }
-
-    return res == MOSQ_ERR_SUCCESS;
-}
-
-void ConnectionThread::disconnect() {
-    int rc = ::mosquitto_disconnect(m_owner);
-    if (rc == MOSQ_ERR_SUCCESS) {
-        std::cout << "Mosquitto client disconnected" << '\n';
-    } else if (rc == MOSQ_ERR_NO_CONN) {
-        std::cout << "Mosquitto client already diconnected" << '\n';
-    }
-}
-
-void ConnectionThread::reconnect() {
-    {
-        std::unique_lock<std::mutex> _lk(m_lock);
-        m_paused = false;
-    }
-    m_cv.notify_all();
-}
-
-bool ConnectionThread::start(::mosquitto *owner) {
-    std::unique_lock<std::mutex> _lk(m_lock);
-    if (m_running) {
-        return true;
-    }
-
-    m_owner = owner;
-    m_running = true;
-    try {
-        m_thread = std::thread(&ConnectionThread::work, this);
-    } catch (...) {
-        std::cout << "Failed creating connection thread" << '\n';
-        m_running = false;
-    }
-
-    return m_running;
-}
-
-void ConnectionThread::stop() {
-    {
-        std::unique_lock<std::mutex> _lk(m_lock);
-        if (!m_running) {
-            return;
-        }
-
-        m_running = false;
-    }
-
-    m_cv.notify_all();
-    m_thread.join();
-}
-
-
-static void onConnect(mosquitto *mosq, void *obj, int rc) {
+static void on_connect(mosquitto *mosq, void *obj, int rc) {
     (void)(mosq);
 
     auto *pClient = reinterpret_cast<MqttClient *>(obj);
 
     if (rc == 0) { // 0 == success
-        std::cout << "Connected to broker" << '\n';
+        std::cout << "on_connect: Connected to broker" << '\n';
     } else {
-        std::cout << "Connection to broker failed" << '\n';
-        pClient->reconnect();
+        std::cout << "on_connect: Connection to broker failed" << '\n';
+        pClient->connect();
     }
 }
 
-static void onMessage(struct mosquitto *mosq,
+static void on_disconnect(mosquitto *mosq, void *obj, int rc) {
+    (void)(mosq);
+
+    auto *pClient = reinterpret_cast<MqttClient *>(obj);
+
+    if (rc == 0) { // 0 == success
+        std::cout << "on_diconnect: Disconnected by client" << '\n';
+    } else {
+        std::cout << "on_connect: Disconnected from broker " << '\n';
+        pClient->connect();
+    }
+}
+
+static void on_message(struct mosquitto *mosq,
                       void *obj,
                       const struct mosquitto_message *msg) {
     (void)(mosq);
 
     auto *pClient = reinterpret_cast<MqttClient *>(obj);
-    pClient->receive(reinterpret_cast<unsigned char *>(msg->payload), msg->payloadlen);
+    pClient->receive(msg->topic, reinterpret_cast<unsigned char *>(msg->payload), msg->payloadlen);
 }
 
 bool MqttClient::initialize() {
@@ -144,30 +58,53 @@ bool MqttClient::initialize() {
         return false;
     }
 
-    mosquitto_connect_callback_set(m_mosq, onConnect);
-    mosquitto_message_callback_set(m_mosq, onMessage);
+    mosquitto_connect_callback_set(m_mosq, on_connect);
+    mosquitto_disconnect_callback_set(m_mosq, on_disconnect);
+    mosquitto_message_callback_set(m_mosq, on_message);
+
+    ::mosquitto_loop_start(m_mosq);
 
     return true;
 }
 
 void MqttClient::finalize() {
     disconnect();
+    ::mosquitto_loop_stop(m_mosq, true);
     ::mosquitto_destroy(m_mosq);
 }
 
 bool MqttClient::connect() {
-    if (!m_connector.start(m_mosq)) {
-        std::cout << "Failed to start connection thread" << '\n';
-        return false;
+    bool res = false;
+    int rc = 0;
+
+    if (m_firstConnectionAttempt) {
+        std::cout << "Trying to connect..." << '\n';
+        rc = ::mosquitto_connect(m_mosq,
+                                 m_brokerAddress.c_str(),
+                                 m_brokerPort,
+                                 s_keepAlive_sec);
+        m_firstConnectionAttempt = false;
+    } else {
+        std::cout << "Trying to reconnect..." << '\n';
+        rc = ::mosquitto_reconnect(m_mosq);
     }
 
-    std::cout << "Connection thread started" << '\n';
+    if (rc == MOSQ_ERR_SUCCESS) {
+        std::cout << "Connected to broker" << '\n';
+        res = true;
+    } else if (rc == MOSQ_ERR_INVAL) {
+        std::cout << "Invalid connection parameters" << '\n';
+    } else if (rc == MOSQ_ERR_ERRNO) {
+        std::cout << "Failed to connect to host: " << strerror(errno) << '\n';
+    } else {
+        std::cout << "Connect returned error: " << ::strerror(rc) << '\n';
+    }
 
-    return true;
+    return res;
 }
 
 bool MqttClient::disconnect() {
-    m_connector.stop();
+    ::mosquitto_disconnect(m_mosq);
 
     return true;
 }
@@ -181,9 +118,8 @@ bool MqttClient::send(std::shared_ptr<std::vector<unsigned char>> payload, ::siz
     return true;
 }
 
-void MqttClient::receive(const unsigned char *payload, ::size_t size) {
-    (void)(payload);
-    (void)(size);
+void MqttClient::receive(const char *topic, const unsigned char *payload, ::size_t size) {
+    m_router->route(std::string(topic), payload, size);
 }
 
 } // namespace comm
