@@ -9,6 +9,7 @@ set(SOURCES
     led.cc
     message.cc
     mqtt_client.cc
+    robot_messages_router.cc
    )
 
 set(LIBS
