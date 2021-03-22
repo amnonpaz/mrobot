@@ -37,7 +37,7 @@ class Router {
         virtual ~Router() = default;
 
         void registerHandler(uint32_t messageId, Handler *handler);
-        bool route(uint32_t messageId, const unsigned char *payload, ::size_t size);
+        bool route(uint32_t messageId, const unsigned char *payload, ::size_t size) const;
 
     protected:
         virtual std::unique_ptr<Message> factory(uint32_t messageId,

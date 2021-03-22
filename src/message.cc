@@ -14,7 +14,7 @@ void Router::registerHandler(uint32_t messageId, Handler *handler)
     m_handlers[messageId].push_back(handler);
 }
 
-bool Router::route(uint32_t messageId, const unsigned char *payload, ::size_t size)
+bool Router::route(uint32_t messageId, const unsigned char *payload, ::size_t size) const
 {
     if (payload == nullptr) {
         std::cout << "Routing error: Received null payload" << '\n';
