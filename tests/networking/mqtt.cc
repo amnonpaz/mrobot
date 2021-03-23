@@ -42,9 +42,7 @@ class TestMqttRouter final : public mrobot::comm::MqttRouter {
         ~TestMqttRouter() = default;
 
     private:
-        std::unique_ptr<mrobot::messaging::Message> factory(uint32_t messageId,
-                                                            const unsigned char *payload,
-                                                            ::size_t size) const override {
+        std::unique_ptr<mrobot::messaging::Message> factory(uint32_t messageId) const override {
             std::unique_ptr<mrobot::messaging::Message> message = nullptr;
 
             switch (messageId) {
@@ -54,11 +52,6 @@ class TestMqttRouter final : public mrobot::comm::MqttRouter {
                 default:
                     std::cout << "Unknown message ID " << messageId << '\n';
                     break;
-            }
-
-            if (message && !message->deserialize(payload, size)) {
-                std::cout << "Failed deserializing message" << '\n';
-                message = nullptr;
             }
 
             return message;

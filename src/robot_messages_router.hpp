@@ -11,10 +11,7 @@ class RobotMessagesRouter final : public comm::MqttRouter {
         virtual ~RobotMessagesRouter() = default;
 
     protected:
-        std::unique_ptr<messaging::Message> factory(uint32_t messageId,
-                                                    const unsigned char *payload,
-                                                    ::size_t size) const override;
-
+        std::unique_ptr<messaging::Message> factory(uint32_t messageId) const override;
         uint32_t topicToMessageId(const std::string &topic) const override;
 };
 

@@ -26,9 +26,15 @@ bool Router::route(uint32_t messageId, const unsigned char *payload, ::size_t si
         return false;
     }
 
-    auto messagePtr = factory(messageId, payload, size);
+    auto messagePtr = factory(messageId);
     if (!messagePtr) {
         std::cout << "Routing error: Invalid message" << '\n';
+        return false;
+    }
+
+
+    if (!messagePtr->deserialize(payload, size)) {
+        std::cout << "Routing error: Deserialization failed" << '\n';
         return false;
     }
 

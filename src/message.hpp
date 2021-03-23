@@ -40,9 +40,7 @@ class Router {
         bool route(uint32_t messageId, const unsigned char *payload, ::size_t size) const;
 
     protected:
-        virtual std::unique_ptr<Message> factory(uint32_t messageId,
-                                                 const unsigned char *payload,
-                                                 ::size_t size) const = 0;
+        virtual std::unique_ptr<Message> factory(uint32_t messageId) const = 0;
 
     private:
         std::vector<std::list<Handler *>> m_handlers;

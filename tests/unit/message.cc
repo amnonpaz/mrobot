@@ -106,10 +106,7 @@ class TestRouter final : public mrobot::messaging::Router {
             }
         }
 
-        unique_message_ptr factory(uint32_t messageId,
-                                  const unsigned char *payload,
-                                  ::size_t size) const override
-        {
+        unique_message_ptr factory(uint32_t messageId) const {
             unique_message_ptr pMessage{nullptr};
 
             switch (messageId) {
@@ -126,8 +123,7 @@ class TestRouter final : public mrobot::messaging::Router {
                     break;
             }
 
-            return pMessage->deserialize(payload, size) ?
-                   std::move(pMessage) : unique_message_ptr{nullptr};
+            return pMessage;
         }
 
     private:

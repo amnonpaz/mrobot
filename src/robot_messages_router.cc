@@ -2,12 +2,8 @@
 
 namespace mrobot {
 
-std::unique_ptr<messaging::Message> RobotMessagesRouter::factory(uint32_t messageId,
-                                                                 const unsigned char *payload,
-                                                                 ::size_t size) const {
+std::unique_ptr<messaging::Message> RobotMessagesRouter::factory(uint32_t messageId) const {
     (void)(messageId);
-    (void)(payload);
-    (void)(size);
 
     std::unique_ptr<messaging::Message> message = nullptr;
 
