@@ -41,6 +41,7 @@ static void on_message(struct mosquitto *mosq,
                       const struct mosquitto_message *msg) {
     (void)(mosq);
 
+    std::cout << "Got message" << '\n';
     auto *pClient = reinterpret_cast<MqttClient *>(obj);
     pClient->receive(msg->topic, reinterpret_cast<unsigned char *>(msg->payload), msg->payloadlen);
 }
@@ -61,6 +62,10 @@ bool MqttClient::initialize() {
     mosquitto_connect_callback_set(m_mosq, on_connect);
     mosquitto_disconnect_callback_set(m_mosq, on_disconnect);
     mosquitto_message_callback_set(m_mosq, on_message);
+
+    if (!connect()) {
+        std::cout << "Failed connecting to broker, waiting for connection..." << '\n';
+    }
 
     ::mosquitto_loop_start(m_mosq);
 

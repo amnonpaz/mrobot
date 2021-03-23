@@ -113,12 +113,6 @@ bool Test::start() const {
         return false;
     }
 
-    if (!client->connect()) {
-        std::cout << "Failed connecting to broker" << '\n';
-        client->finalize();
-        return false;
-    }
-
     std::cout << "Running..." << '\n';
 
     while (m_running) {
