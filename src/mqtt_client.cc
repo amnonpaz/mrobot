@@ -41,7 +41,6 @@ static void on_message(struct mosquitto *mosq,
                       const struct mosquitto_message *msg) {
     (void)(mosq);
 
-    std::cout << "Got message" << '\n';
     auto *pClient = reinterpret_cast<MqttClient *>(obj);
     pClient->receive(msg->topic, reinterpret_cast<unsigned char *>(msg->payload), msg->payloadlen);
 }
