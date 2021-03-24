@@ -82,7 +82,6 @@ class MqttClient final : public Client {
 
         bool connect() override ;
         bool disconnect() override ;
-        //inline void reconnect() { m_connector.reconnect(); }
 
         bool send(std::shared_ptr<std::vector<unsigned char>> payload, ::size_t size) override ;
         void receive(const char *topic,
