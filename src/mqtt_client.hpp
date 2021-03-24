@@ -1,7 +1,6 @@
 #ifndef MOSQUITTO_CLIENT_H_
 #define MOSQUITTO_CLIENT_H_
 
-#include "comm.hpp"
 #include "message.hpp"
 
 #include <mosquitto.h>
@@ -51,10 +50,6 @@ class MqttRouter : public messaging::Router {
             Router(maxMessagesTypes) {}
         virtual ~MqttRouter() = default;
 
-        inline void registerHandler(const std::string &topic, messaging::Handler *handler) {
-            Router::registerHandler(topicToMessageId(topic), handler);
-        }
-
         inline bool route(const std::string &topic, const unsigned char *payload, ::size_t size) const {
             return Router::route(topicToMessageId(topic), payload, size);
         }
@@ -69,7 +64,7 @@ class MqttRouter : public messaging::Router {
 };
 
 
-class MqttClient final : public Client {
+class MqttClient final {
     public:
         MqttClient(std::string clientName,
                    std::string brokerAddress,
@@ -82,13 +77,13 @@ class MqttClient final : public Client {
             m_session(nullptr),
             m_router(router) {}
 
-        bool initialize() override ;
-        void finalize() override ;
+        bool initialize();
+        void finalize();
 
-        bool connect() override ;
-        bool disconnect() override ;
+        bool connect();
+        bool disconnect();
 
-        bool send(std::shared_ptr<std::vector<unsigned char>> payload, ::size_t size) override ;
+        bool send(const char *topic, const unsigned char *payload, ::size_t size);
         void receive(const char *topic,
                      const unsigned char *payload,
                      ::size_t size);

@@ -162,7 +162,8 @@ bool MqttClient::subscribe() {
     return res;
 }
 
-bool MqttClient::send(std::shared_ptr<std::vector<unsigned char>> payload, ::size_t size) {
+bool MqttClient::send(const char *topic, const unsigned char *payload, ::size_t size) {
+    (void)(topic);
     (void)(payload);
     (void)(size);
 
