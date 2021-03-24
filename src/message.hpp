@@ -32,7 +32,7 @@ class Handler {
 
 class Router {
     public:
-        Router(uint32_t maxMessageId) :
+        explicit Router(uint32_t maxMessageId) :
             m_handlers(static_cast<::size_t>(maxMessageId)) {}
         virtual ~Router() = default;
 
