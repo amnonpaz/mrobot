@@ -13,6 +13,7 @@ class MessageEcho final : public mrobot::messaging::Message {
         virtual ~MessageEcho() = default;
 
         bool deserialize(const unsigned char *payload, ::size_t size) override {
+            size = truncSize(size);
             try {
                 m_data.reserve(size);
             } catch (...) {
@@ -20,7 +21,9 @@ class MessageEcho final : public mrobot::messaging::Message {
                 return false;
             }
 
-            ::memcpy(m_data.data(), payload, truncSize(size));
+            for (::size_t i = 0; i < size; ++i) {
+                m_data.push_back(payload[i]);
+            }
             return true;
         }
 
@@ -40,6 +43,7 @@ class TestMqttRouter final : public mrobot::comm::MqttRouter {
     public:
         enum MessageTypes {
             MessageTypeEcho,
+            MessageTypeReply,
             MessageTypeMax
         };
 
@@ -76,7 +80,7 @@ class TestMqttRouter final : public mrobot::comm::MqttRouter {
 
         const std::string &messageIdToTopic(uint32_t messageId) const override {
             static const std::array<std::string, MessageTypeMax> strings = {
-                "echo"
+                "echo", "reply"
             };
 
             return strings[messageId];
@@ -91,7 +95,7 @@ class EchoHandler final : public mrobot::messaging::Handler {
 
         void handleMessage(const std::unique_ptr<mrobot::messaging::Message> &message) override {
             auto *echoMessage = dynamic_cast<MessageEcho *>(message.get());
-            m_client->send("echo", echoMessage->getData().data(), echoMessage->getData().size());
+            m_client->send("reply", echoMessage->getData().data(), echoMessage->getData().size());
         }
 
     private:
