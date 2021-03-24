@@ -163,13 +163,43 @@ bool MqttClient::subscribe() {
 }
 
 bool MqttClient::send(const char *topic, const unsigned char *payload, ::size_t size) {
-    (void)(topic);
-    (void)(payload);
-    (void)(size);
+    bool res = false;
 
-    // TODO: implement
+    int rc = mosquitto_publish(m_mosq, nullptr, topic, size, payload, s_defaultQOS, true);
+    switch (rc) {
+        case MOSQ_ERR_SUCCESS:
+            res = true;
+            break;
+        case MOSQ_ERR_INVAL:
+            std::cout << "Publish error: Invalid parameters" << '\n';
+            break;
+        case MOSQ_ERR_NOMEM:
+            std::cout << "Publish error: Not enought memory" << '\n';
+            break;
+        case MOSQ_ERR_NO_CONN:
+            std::cout << "Publish error: Client isn't connected to broker" << '\n';
+            break;
+        case MOSQ_ERR_PROTOCOL:
+            std::cout << "Publish error: Protocol error" << '\n';
+            break;
+        case MOSQ_ERR_PAYLOAD_SIZE:
+            std::cout << "Publish error: Payload too large" << '\n';
+            break;
+        case MOSQ_ERR_MALFORMED_UTF8:
+            std::cout << "Publish error: Topic is not a valid UTF-8" << '\n';
+            break;
+        case MOSQ_ERR_QOS_NOT_SUPPORTED:
+            std::cout << "Publish error: QoS not supported" << '\n';
+            break;
+        case MOSQ_ERR_OVERSIZE_PACKET:
+            std::cout << "Publish error: Packet size not supported by broker" << '\n';
+            break;
+        default:
+            std::cout << "Publish error: Unknown error" << '\n';
+            break;
+    }
 
-    return true;
+    return res;
 }
 
 void MqttClient::receive(const char *topic, const unsigned char *payload, ::size_t size) {
