@@ -36,7 +36,7 @@ class Router {
             m_handlers(static_cast<::size_t>(maxMessageId)) {}
         virtual ~Router() = default;
 
-        void registerHandler(uint32_t messageId, Handler *handler);
+        void registerHandler(uint32_t messageId, Handler *handler) const;
         bool route(uint32_t messageId, const unsigned char *payload, ::size_t size) const;
 
         uint32_t invalidMessageId() const { return m_handlers.size(); }
@@ -45,7 +45,7 @@ class Router {
         virtual std::unique_ptr<Message> factory(uint32_t messageId) const = 0;
 
     private:
-        std::vector<std::list<Handler *>> m_handlers;
+        mutable std::vector<std::list<Handler *>> m_handlers;
 };
 
 } // namespace messaging

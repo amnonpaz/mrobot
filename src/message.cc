@@ -7,7 +7,7 @@ namespace mrobot {
     
 namespace messaging {
 
-void Router::registerHandler(uint32_t messageId, Handler *handler)
+void Router::registerHandler(uint32_t messageId, Handler *handler) const
 {
     assert(messageId < m_handlers.size());
 
