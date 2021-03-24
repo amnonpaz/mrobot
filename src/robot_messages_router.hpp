@@ -7,7 +7,8 @@ namespace mrobot {
 
 class RobotMessagesRouter final : public comm::MqttRouter {
     public:
-        RobotMessagesRouter() : comm::MqttRouter(0) {}
+        explicit RobotMessagesRouter(std::string topicPrefix = "") :
+            comm::MqttRouter(0, std::move(topicPrefix)) {}
         virtual ~RobotMessagesRouter() = default;
 
     protected:
