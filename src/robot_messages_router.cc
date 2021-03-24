@@ -20,4 +20,11 @@ uint32_t RobotMessagesRouter::topicToMessageId(const std::string &topic) const {
     return 0;
 }
 
+const std::string &RobotMessagesRouter::messageIdToTopic(uint32_t messageId) const {
+    (void)(messageId);
+    static const std::string dummy;
+
+    return dummy;
+}
+
 } // namespace mrobot

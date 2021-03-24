@@ -3,7 +3,7 @@
 
 #include "led.hpp"
 #include "conf.hpp"
-#include "comm.hpp"
+#include "mqtt_client.hpp"
 #include "robot_messages_router.hpp"
 
 #include <string>
@@ -39,7 +39,7 @@ class Robot final {
         conf::Database m_configuration;
         std::array<std::unique_ptr<hw::Led>, LightMax> m_lights;
 
-        std::unique_ptr<comm::Client> m_comm;
+        std::unique_ptr<comm::MqttClient> m_comm;
         const RobotMessagesRouter m_messagesRouter;
 
 };

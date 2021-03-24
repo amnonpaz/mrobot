@@ -13,6 +13,7 @@ class RobotMessagesRouter final : public comm::MqttRouter {
     protected:
         std::unique_ptr<messaging::Message> factory(uint32_t messageId) const override;
         uint32_t topicToMessageId(const std::string &topic) const override;
+        const std::string &messageIdToTopic(uint32_t messageId) const override;
 };
 
 } // namespace mrobot
