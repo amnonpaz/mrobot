@@ -46,7 +46,7 @@ class TestMqttRouter final : public mrobot::comm::MqttRouter {
             MessageTypeMax
         };
 
-        TestMqttRouter() : MqttRouter(MessageTypeMax) {}
+        TestMqttRouter() : MqttRouter(MessageTypeMax, "test/") {}
         ~TestMqttRouter() = default;
 
     private:
