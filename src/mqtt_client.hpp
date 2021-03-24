@@ -45,7 +45,7 @@ class MqttSession {
         std::string m_version;
 };
 
-class MqttRouter : protected messaging::Router {
+class MqttRouter : public messaging::Router {
     public:
         MqttRouter(uint32_t maxMessagesTypes) :
             Router(maxMessagesTypes) {}
@@ -59,8 +59,13 @@ class MqttRouter : protected messaging::Router {
             return Router::route(topicToMessageId(topic), payload, size);
         }
 
+        inline const std::string &getTopic(uint32_t messageId) const {
+            return messageIdToTopic(messageId);
+        }
+
     protected:
         virtual uint32_t topicToMessageId(const std::string &topic) const = 0;
+        virtual const std::string &messageIdToTopic(uint32_t messageId) const = 0;
 };
 
 
@@ -89,6 +94,8 @@ class MqttClient final : public Client {
                      ::size_t size);
 
     private:
+        bool subscribe() ;
+
         const std::string m_clientName;
         const std::string m_brokerAddress;
         const uint16_t m_brokerPort;
@@ -99,6 +106,7 @@ class MqttClient final : public Client {
         const MqttRouter *m_router;
 
         static constexpr uint32_t s_keepAlive_sec = 30;
+        static constexpr int s_defaultQOS = 1;
 };
 
 } // namespace comm

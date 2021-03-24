@@ -94,15 +94,24 @@ bool MqttClient::connect() {
         rc = ::mosquitto_reconnect(m_mosq);
     }
 
-    if (rc == MOSQ_ERR_SUCCESS) {
-        std::cout << "Connected to broker" << '\n';
-        res = true;
-    } else if (rc == MOSQ_ERR_INVAL) {
-        std::cout << "Invalid connection parameters" << '\n';
-    } else if (rc == MOSQ_ERR_ERRNO) {
-        std::cout << "Failed to connect to host: " << strerror(errno) << '\n';
-    } else {
-        std::cout << "Connect returned error: " << ::strerror(rc) << '\n';
+    switch (rc) {
+        case MOSQ_ERR_SUCCESS:
+            std::cout << "Connected to broker" << '\n';
+            res = subscribe();
+            if (!res) {
+                std::cout << "Subscription failed" << '\n';
+                disconnect();
+            }
+            break;
+        case MOSQ_ERR_INVAL:
+            std::cout << "Invalid connection parameters" << '\n';
+            break;
+        case MOSQ_ERR_ERRNO:
+            std::cout << "Failed to connect to host: " << strerror(errno) << '\n';
+            break;
+        default:
+            std::cout << "Connect returned error: " << ::strerror(rc) << '\n';
+            break;
     }
 
     return res;
@@ -112,6 +121,45 @@ bool MqttClient::disconnect() {
     ::mosquitto_disconnect(m_mosq);
 
     return true;
+}
+
+bool MqttClient::subscribe() {
+    bool res = true;
+
+    for (uint32_t messageId = 0; messageId != m_router->invalidMessageId(); messageId++) {
+        const std::string &topic = m_router->getTopic(messageId);
+        int rc = mosquitto_subscribe(m_mosq, nullptr, topic.c_str(), s_defaultQOS);
+        switch (rc) {
+            case MOSQ_ERR_SUCCESS:
+                std::cout << "Subscribed to " << topic << '\n';
+                break;
+            case MOSQ_ERR_INVAL:
+                std::cout << "Subscribe error: Invalid parameters" << '\n';
+                break;
+            case MOSQ_ERR_NOMEM:
+                std::cout << "Subscribe error: Not enought memory" << '\n';
+                break;
+            case MOSQ_ERR_NO_CONN:
+                std::cout << "Subscribe error: Client isn't connected to broker" << '\n';
+                break;
+            case MOSQ_ERR_MALFORMED_UTF8:
+                std::cout << "Subscribe error: Topic is not a valid UTF-8" << '\n';
+                break;
+            case MOSQ_ERR_OVERSIZE_PACKET:
+                std::cout << "Subscribe error: Packet size not supported by broker" << '\n';
+                break;
+            default:
+                std::cout << "Subscribe error: Unknown error" << '\n';
+                break;
+        }
+
+        if (rc != MOSQ_ERR_SUCCESS) {
+            res = false;
+            break;
+        }
+    }
+
+    return res;
 }
 
 bool MqttClient::send(std::shared_ptr<std::vector<unsigned char>> payload, ::size_t size) {
