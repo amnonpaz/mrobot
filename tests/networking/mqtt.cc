@@ -24,7 +24,7 @@ class MessageEcho final : public mrobot::messaging::Message {
             return true;
         }
 
-        std::vector<unsigned char> getData() const {
+        const std::vector<unsigned char> &getData() const {
             return m_data;
         }
 
@@ -38,6 +38,11 @@ class MessageEcho final : public mrobot::messaging::Message {
 
 class TestMqttRouter final : public mrobot::comm::MqttRouter {
     public:
+        enum MessageTypes {
+            MessageTypeEcho,
+            MessageTypeMax
+        };
+
         TestMqttRouter() : MqttRouter(MessageTypeMax) {}
         ~TestMqttRouter() = default;
 
@@ -76,19 +81,30 @@ class TestMqttRouter final : public mrobot::comm::MqttRouter {
 
             return strings[messageId];
         }
-
-        enum MessageTypes {
-            MessageTypeEcho,
-            MessageTypeMax
-        };
 };
+
+class EchoHandler final : public mrobot::messaging::Handler {
+    public:
+        explicit EchoHandler(std::shared_ptr<mrobot::comm::MqttClient> client) :
+            m_client(client) {}
+        ~EchoHandler() = default;
+
+        void handleMessage(const std::unique_ptr<mrobot::messaging::Message> &message) override {
+            auto *echoMessage = dynamic_cast<MessageEcho *>(message.get());
+            m_client->send("echo", echoMessage->getData().data(), echoMessage->getData().size());
+        }
+
+    private:
+        std::shared_ptr<mrobot::comm::MqttClient> m_client;
+};
+
 
 class Test {
     public:
         Test(std::string clientName, std::string brokerAddress, uint16_t brokerPort);
         ~Test() = default;
 
-        bool start() const ;
+        bool start();
         void stop();
 
     private:
@@ -106,10 +122,10 @@ Test::Test(std::string clientName, std::string brokerAddress, uint16_t brokerPor
     m_running(true) {
 }
 
-bool Test::start() const {
+bool Test::start() {
     std::cout << "Test MqTT client starting" << '\n';
 
-    auto client = std::make_unique<mrobot::comm::MqttClient>(m_clientName,
+    auto client = std::make_shared<mrobot::comm::MqttClient>(m_clientName,
                                                              m_brokerAddress,
                                                              m_brokerPort,
                                                              &m_router);
@@ -117,6 +133,9 @@ bool Test::start() const {
         std::cout << "Failed allocating new client" << '\n';
         return false;
     }
+
+    EchoHandler echoHandler(client);
+    m_router.registerHandler(TestMqttRouter::MessageTypeEcho, &echoHandler);
 
     if (!client->initialize()) {
         std::cout << "Failed initializing client" << '\n';
