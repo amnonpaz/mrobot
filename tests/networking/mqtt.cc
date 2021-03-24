@@ -43,7 +43,6 @@ class TestMqttRouter final : public mrobot::comm::MqttRouter {
     public:
         enum MessageTypes {
             MessageTypeEcho,
-            MessageTypeReply,
             MessageTypeMax
         };
 
@@ -80,7 +79,7 @@ class TestMqttRouter final : public mrobot::comm::MqttRouter {
 
         const std::string &messageIdToTopic(uint32_t messageId) const override {
             static const std::array<std::string, MessageTypeMax> strings = {
-                "echo", "reply"
+                "echo"
             };
 
             return strings[messageId];
