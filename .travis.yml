@@ -7,7 +7,12 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install -y libmosquitto-dev
 script:
+  - echo "Building project"
   - mkdir build && cd build
-  - cmake .. -DUNITTESTS=on
-  - make -j8
+  - cmake .. && make -j8
+  - cd ../ && rm -rf build
+  - echo "Building unit tests"
+  - mkdir build && cd build
+  - cmake .. -DUNITTESTS=on && make -j8
   - for TEST in $(ls tests/unit/unit_*); do ${TEST}; done
+  - cd ../ && rm -rf build
