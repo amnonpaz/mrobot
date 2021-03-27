@@ -6,11 +6,12 @@ project(mrobot
 
 option(UNITTESTS "Build unittests" OFF)
 option(NETWORKING_TESTS "Build networking tests" OFF)
+option(SIMULATION "Build simulation" OFF)
 
 include(cmake/env.cmake)
 
 set(TESTING FALSE)
-if(UNITTESTS OR NETWORKING_TESTS)
+if(UNITTESTS OR NETWORKING_TESTS OR SIMULATION)
     set(TESTING TRUE)
 endif()
 
