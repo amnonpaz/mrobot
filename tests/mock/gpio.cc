@@ -29,7 +29,7 @@ bool Gpio::finalize() {
 bool Gpio::set(bool on) const {
     static const std::array<const char*, 2> strings{"0","1"};
 
-    if (m_dir != DirectionIn) {
+    if (m_dir != DirectionOut) {
         std::cout << "GPIO #" << std::to_string(m_pin) << " cannot be se";
         return false;
     }
