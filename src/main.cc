@@ -8,7 +8,7 @@
 
 int main(int argc, const char *argv[])
 {
-    std::cout << "Mayyan's Robot v" << VERSION << std::endl;
+    std::cout << "Maayan's Robot v" << VERSION << std::endl;
 
     if (argc < 2) {
         std::cout << "Please provide configuration file name" << '\n';
