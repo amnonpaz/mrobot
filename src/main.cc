@@ -3,8 +3,29 @@
 #include <iostream>
 #include <string.h>
 #include <algorithm>
+#include <signal.h>
 
 #define MAX_CONF_FILENAME_LEN 256UL
+
+static mrobot::Robot *pRobot = nullptr;
+
+static void terminate(int signum)
+{
+    (void)(signum);
+
+    if (pRobot != nullptr) {
+        pRobot->stop();
+    }
+}
+
+static void registerSigtermHandler()
+{
+    struct sigaction action;
+
+    ::memset(&action, 0, sizeof(struct sigaction));
+    action.sa_handler = terminate;
+    sigaction(SIGINT, &action, NULL);
+}
 
 int main(int argc, const char *argv[])
 {
@@ -18,8 +39,22 @@ int main(int argc, const char *argv[])
     const std::string confFilename{argv[1], std::min(::strlen(argv[1]), MAX_CONF_FILENAME_LEN)};
 
     mrobot::Robot robot(confFilename);
+    pRobot = &robot;
 
-    robot.init();
+    if (!robot.initialize()) {
+        std::cout << "Failed initializing robot" << '\n';
+        return 2;
+    }
+
+    registerSigtermHandler();
+    if (!robot.run()) {
+        std::cout << "Failed running robot" << '\n';
+        return 2;
+    }
+
+    std::cout << "Exiting" << '\n';
+
+    robot.finalize();
 
     return 0;
 }

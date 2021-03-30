@@ -2,12 +2,14 @@
 
 #include <iostream>
 #include <sstream>
+#include <thread>
+#include <chrono>
 
 #include "mqtt_client.hpp"
 
 namespace mrobot {
 
-bool Robot::init()
+bool Robot::initialize()
 {
     if (!m_configuration.addFile(m_confFile)) {
         return false;
@@ -18,12 +20,32 @@ bool Robot::init()
         return false;
     }
 
-    if (!initComm()) {
+    if (!communiationOpen()) {
         std::cout << "Error initializing communication" << '\n';
         return false;
     }
 
+    m_running = true;
+
     return true;
+}
+
+void Robot::finalize() {
+    communiationClose();
+}
+
+bool Robot::run() const {
+    using namespace std::chrono_literals;
+
+    while (m_running) {
+        std::this_thread::sleep_for(s_mainLoopSleepTime_ms * 1ms);
+    }
+
+    return true;
+}
+
+void Robot::stop() {
+    m_running = false;
 }
 
 bool Robot::setLight(Light light, bool on)
@@ -58,7 +80,7 @@ bool Robot::initLights() {
     return res;
 }
 
-bool Robot::initComm() {
+bool Robot::communiationOpen() {
     bool res = true;
 
     auto clientName = m_configuration.get("mqtt_client_name");
@@ -92,8 +114,22 @@ bool Robot::initComm() {
                                                 brokerURL,
                                                 brokerPortUint,
                                                 &m_messagesRouter);
+    if (m_comm == nullptr) {
+        std::cout << "Failed allocating MqTT client" << '\n';
+        return false;
+    }
 
-    return m_comm != nullptr;
+    if (!m_comm->initialize()) {
+        std::cout << "Failed initializing client" << '\n';
+        return false;
+    }
+
+    return true;
+}
+
+
+void Robot::communiationClose() {
+    m_comm->finalize();
 }
 
 const char *Robot::to_string(Light light) {

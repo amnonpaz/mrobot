@@ -23,25 +23,33 @@ class Robot final {
         };
 
         explicit Robot(std::string confFile) :
-            m_confFile(std::move(confFile)) {}
+            m_confFile(std::move(confFile)),
+            m_running(false) {}
         ~Robot() = default;
 
-        bool init();
+        bool initialize();
+        void finalize();
+        bool run() const;
+        void stop();
+
         bool setLight(Light light, bool on);
 
     private:
         bool initLights();
-        bool initComm();
+        bool communiationOpen();
+        void communiationClose();
 
         static const char *to_string(Light light);
 
         const std::string m_confFile;
         conf::Database m_configuration;
         std::array<std::unique_ptr<hw::Led>, LightMax> m_lights;
+        bool m_running;
 
         std::unique_ptr<comm::MqttClient> m_comm;
         const RobotMessagesRouter m_messagesRouter;
 
+        static constexpr uint32_t s_mainLoopSleepTime_ms = 50;
 };
 
 } // namespace mrobot 
