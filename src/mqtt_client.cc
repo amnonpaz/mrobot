@@ -98,7 +98,7 @@ bool MqttClient::connect() {
             std::cout << "Connected to broker" << '\n';
             res = subscribe();
             if (!res) {
-                std::cout << "Subscription failed" << '\n';
+                std::cout << "Connection failed" << '\n';
                 disconnect();
             }
             break;
