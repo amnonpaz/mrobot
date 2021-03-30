@@ -124,12 +124,18 @@ bool Robot::communiationOpen() {
         return false;
     }
 
+    registerHandlers();
+
     return true;
 }
 
 
 void Robot::communiationClose() {
     m_comm->finalize();
+}
+
+void Robot::registerHandlers() {
+    m_messagesRouter.registerHandler(MessageTypeLightSet, &m_lightSetHandler);
 }
 
 const char *Robot::to_string(Light light) {

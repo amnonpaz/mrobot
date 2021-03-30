@@ -11,6 +11,7 @@ set(SOURCES
     ${SOURCES_PATH}/message.cc
     ${SOURCES_PATH}/mqtt_client.cc
     ${SOURCES_PATH}/robot_messages_router.cc
+    ${SOURCES_PATH}/robot_messages_handlers.cc
    )
 
 set(MOCK

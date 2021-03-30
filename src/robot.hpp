@@ -5,13 +5,15 @@
 #include "conf.hpp"
 #include "mqtt_client.hpp"
 #include "robot_messages_router.hpp"
+#include "robot_messages_handlers.hpp"
 
 #include <string>
 #include <array>
 #include <memory>
 
 namespace mrobot {
-    
+
+
 class Robot final {
     public:
         enum Light {
@@ -24,7 +26,8 @@ class Robot final {
 
         explicit Robot(std::string confFile) :
             m_confFile(std::move(confFile)),
-            m_running(false) {}
+            m_running(false),
+            m_lightSetHandler(this) {}
         ~Robot() = default;
 
         bool initialize();
@@ -38,6 +41,7 @@ class Robot final {
         bool initLights();
         bool communiationOpen();
         void communiationClose();
+        void registerHandlers();
 
         static const char *to_string(Light light);
 
@@ -49,6 +53,10 @@ class Robot final {
         std::unique_ptr<comm::MqttClient> m_comm;
         const RobotMessagesRouter m_messagesRouter;
 
+        // messages handlers
+        message_handler::LightSet m_lightSetHandler;
+
+        // constants
         static constexpr uint32_t s_mainLoopSleepTime_ms = 50;
 };
 
