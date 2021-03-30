@@ -5,10 +5,32 @@
 
 namespace mrobot {
 
+enum MessageType {
+    MessageTypeLightSet,
+    MessageTypeMax
+};
+
+class MessageLightSet : public messaging::Message {
+    public:
+        MessageLightSet() = default;
+        virtual ~MessageLightSet() = default;
+
+        bool deserialize(const unsigned char *payload, ::size_t size) override;
+
+        uint32_t getId() const noexcept { return m_data.id; }
+        uint32_t getState() const noexcept { return m_data.state; }
+
+    private:
+        struct {
+            uint32_t id;
+            uint32_t state;
+        } m_data __attribute__((packed));
+};
+
 class RobotMessagesRouter final : public comm::MqttRouter {
     public:
         explicit RobotMessagesRouter(std::string topicPrefix = "") :
-            comm::MqttRouter(0, std::move(topicPrefix)) {}
+            comm::MqttRouter(MessageTypeMax, std::move(topicPrefix)) {}
         virtual ~RobotMessagesRouter() = default;
 
     protected:

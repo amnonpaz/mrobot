@@ -1,30 +1,63 @@
 #include "robot_messages_router.hpp"
 
+#include <iostream>
+#include <cstring>
+
 namespace mrobot {
+
+bool MessageLightSet::deserialize(const unsigned char *payload, ::size_t size) {
+    static constexpr ::size_t dataSize = sizeof(size);
+
+    if (size < dataSize) {
+        std::cout << "MessageLightSet Error: Payload too small [" << size << "]" << '\n';
+        return false;
+    }
+
+    if (size > dataSize) {
+        std::cout << "MessageLightSet Error: Payload too large [" << size << "]" << '\n';
+        return false;
+    }
+
+    ::memcpy(&m_data, payload, dataSize);
+
+    return true;
+}
 
 std::unique_ptr<messaging::Message> RobotMessagesRouter::factory(uint32_t messageId) const {
     (void)(messageId);
 
     std::unique_ptr<messaging::Message> message = nullptr;
 
-    // TODO: implement
+    switch (MessageType(messageId)) {
+        case MessageTypeLightSet:
+            message = std::make_unique<MessageLightSet>();
+            break;
+        default:
+            std::cout << "Unknown message ID " << messageId << '\n';
+            break;
+    }
 
     return message;
 }
 
 uint32_t RobotMessagesRouter::topicToMessageId(const std::string &topic) const {
-    (void)(topic);
+    uint32_t messageId = MessageTypeMax;
 
-    // TODO: implement
+    for (messageId = 0; messageId < MessageTypeMax; ++messageId) {
+        if (topic == messageIdToTopic(messageId)) {
+            break;
+        }
+    }
 
-    return 0;
+    return messageId;
 }
 
 const std::string &RobotMessagesRouter::messageIdToTopic(uint32_t messageId) const {
-    (void)(messageId);
-    static const std::string dummy;
+    static const std::array<std::string, MessageTypeMax> strings = {
+        "/led/set" // MessageTypeLightSet
+    };
 
-    return dummy;
+    return strings[messageId];
 }
 
 } // namespace mrobot
