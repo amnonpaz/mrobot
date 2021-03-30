@@ -50,6 +50,11 @@ void Robot::stop() {
 
 bool Robot::setLight(Light light, bool on)
 {
+    if (::size_t(light) > m_lights.size()) {
+        std::cout << "No such light #" << uint32_t(light) << '\n';
+        return false;
+    }
+
     return m_lights[light]->set(on ? hw::Led::ON : hw::Led::OFF);
 }
 
