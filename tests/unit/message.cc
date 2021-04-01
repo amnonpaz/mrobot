@@ -71,9 +71,9 @@ typedef TestMessageHandler<uint8_t, MessageFirst> MessageFirstHandler;
 typedef TestMessageHandler<uint16_t, MessageSecond> MessageSecondHandler;
 typedef TestMessageHandler<uint32_t, MessageThird> MessageThirdHandler;
 
-class TestRouter final : public mrobot::messaging::Router {
+class TestRouter final : public mrobot::messaging::IncomingRouter {
     public:
-        TestRouter() : Router(TestMessageTypeMax) {
+        TestRouter() : IncomingRouter(TestMessageTypeMax) {
             registerHandler(TestMessageTypeFirst, &m_firstHandler);
             registerHandler(TestMessageTypeSecond, &m_secondHandler);
             for (auto &handler : m_thirdHandlers) {

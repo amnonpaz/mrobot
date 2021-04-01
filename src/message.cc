@@ -7,14 +7,14 @@ namespace mrobot {
     
 namespace messaging {
 
-void Router::registerHandler(uint32_t messageId, Handler *handler) const
+void IncomingRouter::registerHandler(uint32_t messageId, Handler *handler) const
 {
     assert(messageId < m_handlers.size());
 
     m_handlers[messageId].push_back(handler);
 }
 
-bool Router::route(uint32_t messageId, const unsigned char *payload, ::size_t size) const
+bool IncomingRouter::route(uint32_t messageId, const unsigned char *payload, ::size_t size) const
 {
     if (payload == nullptr) {
         std::cout << "Routing error: Received null payload" << '\n';

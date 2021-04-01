@@ -43,16 +43,16 @@ class MqttSession {
         std::string m_version;
 };
 
-class MqttRouter : public messaging::Router {
+class MqttRouter : public messaging::IncomingRouter {
     public:
         MqttRouter(uint32_t maxMessagesTypes, std::string topicPrefix = "") :
-            Router(maxMessagesTypes),
+            IncomingRouter(maxMessagesTypes),
             m_topicPrefix(topicPrefix) {}
         virtual ~MqttRouter() = default;
 
         inline bool route(const std::string &topic, const unsigned char *payload, ::size_t size) const {
             std::string temp{topic, m_topicPrefix.length()};
-            return Router::route(topicToMessageId(temp), payload, size);
+            return IncomingRouter::route(topicToMessageId(temp), payload, size);
         }
 
         inline std::string getTopic(uint32_t messageId) const {

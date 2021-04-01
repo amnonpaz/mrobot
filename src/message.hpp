@@ -35,11 +35,11 @@ class Handler {
         virtual void handleMessage(const std::unique_ptr<IncomingMessage> &message) = 0;
 };
 
-class Router {
+class IncomingRouter {
     public:
-        explicit Router(uint32_t maxMessageId) :
+        explicit IncomingRouter(uint32_t maxMessageId) :
             m_handlers(static_cast<::size_t>(maxMessageId)) {}
-        virtual ~Router() = default;
+        virtual ~IncomingRouter() = default;
 
         void registerHandler(uint32_t messageId, Handler *handler) const;
         bool route(uint32_t messageId, const unsigned char *payload, ::size_t size) const;
