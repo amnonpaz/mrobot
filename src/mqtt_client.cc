@@ -125,8 +125,8 @@ bool MqttClient::disconnect() {
 bool MqttClient::subscribe() {
     bool res = true;
 
-    for (uint32_t messageId = 0; messageId != m_router->invalidMessageId(); messageId++) {
-        const std::string topic = m_router->getTopic(messageId);
+    for (uint32_t messageId = 0; messageId != m_incomingRouter->invalidMessageId(); messageId++) {
+        const std::string topic = m_incomingRouter->getTopic(messageId);
         int rc = mosquitto_subscribe(m_mosq, nullptr, topic.c_str(), s_defaultQOS);
         switch (rc) {
             case MOSQ_ERR_SUCCESS:
@@ -202,7 +202,7 @@ bool MqttClient::send(const char *topic, const unsigned char *payload, ::size_t 
 }
 
 void MqttClient::receive(const char *topic, const unsigned char *payload, ::size_t size) {
-    m_router->route(std::string(topic), payload, size);
+    m_incomingRouter->route(std::string(topic), payload, size);
 }
 
 } // namespace comm

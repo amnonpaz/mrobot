@@ -43,12 +43,12 @@ class MqttSession {
         std::string m_version;
 };
 
-class MqttRouter : public messaging::IncomingRouter {
+class MqttIncomingRouter : public messaging::IncomingRouter {
     public:
-        MqttRouter(uint32_t maxMessagesTypes, std::string topicPrefix = "") :
+        MqttIncomingRouter(uint32_t maxMessagesTypes, std::string topicPrefix = "") :
             IncomingRouter(maxMessagesTypes),
             m_topicPrefix(topicPrefix) {}
-        virtual ~MqttRouter() = default;
+        virtual ~MqttIncomingRouter() = default;
 
         inline bool route(const std::string &topic, const unsigned char *payload, ::size_t size) const {
             std::string temp{topic, m_topicPrefix.length()};
@@ -73,13 +73,13 @@ class MqttClient final {
         MqttClient(std::string clientName,
                    std::string brokerAddress,
                    uint16_t brokerPort,
-                   const MqttRouter *router) :
+                   const MqttIncomingRouter *router) :
             m_clientName(std::move(clientName)),
             m_brokerAddress(std::move(brokerAddress)),
             m_brokerPort(brokerPort),
             m_firstConnectionAttempt(true),
             m_session(nullptr),
-            m_router(router) {}
+            m_incomingRouter(router) {}
 
         bool initialize();
         void finalize();
@@ -102,7 +102,7 @@ class MqttClient final {
         std::shared_ptr<MqttSession> m_session;
         ::mosquitto *m_mosq;
 
-        const MqttRouter *m_router;
+        const MqttIncomingRouter *m_incomingRouter;
 
         static constexpr uint32_t s_keepAlive_sec = 30;
         static constexpr int s_defaultQOS = 1;

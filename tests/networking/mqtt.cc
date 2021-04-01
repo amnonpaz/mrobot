@@ -39,15 +39,15 @@ class MessageEcho final : public mrobot::messaging::IncomingMessage {
         }
 };
 
-class TestMqttRouter final : public mrobot::comm::MqttRouter {
+class TestMqttIncomingRouter final : public mrobot::comm::MqttIncomingRouter {
     public:
         enum MessageTypes {
             MessageTypeEcho,
             MessageTypeMax
         };
 
-        TestMqttRouter() : MqttRouter(MessageTypeMax, "test/") {}
-        ~TestMqttRouter() = default;
+        TestMqttIncomingRouter() : MqttIncomingRouter(MessageTypeMax, "test/") {}
+        ~TestMqttIncomingRouter() = default;
 
     private:
         std::unique_ptr<mrobot::messaging::IncomingMessage> factory(uint32_t messageId) const override {
@@ -114,7 +114,7 @@ class Test {
         const std::string m_clientName;
         const std::string m_brokerAddress;
         const uint16_t m_brokerPort;
-        const TestMqttRouter m_router;
+        const TestMqttIncomingRouter m_router;
         bool m_running;
 };
 
@@ -138,7 +138,7 @@ bool Test::start() {
     }
 
     EchoHandler echoHandler(client);
-    m_router.registerHandler(TestMqttRouter::MessageTypeEcho, &echoHandler);
+    m_router.registerHandler(TestMqttIncomingRouter::MessageTypeEcho, &echoHandler);
 
     if (!client->initialize()) {
         std::cout << "Failed initializing client" << '\n';

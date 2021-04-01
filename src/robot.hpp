@@ -51,7 +51,7 @@ class Robot final {
         bool m_running;
 
         std::unique_ptr<comm::MqttClient> m_comm;
-        const RobotMessagesRouter m_messagesRouter;
+        const RobotImcomingMessagesRouter m_messagesRouter;
 
         // messages handlers
         message_handler::LightSet m_lightSetHandler;

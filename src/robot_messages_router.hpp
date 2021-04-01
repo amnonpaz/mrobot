@@ -27,11 +27,11 @@ class MessageLightSet : public messaging::IncomingMessage {
         } m_data __attribute__((packed));
 };
 
-class RobotMessagesRouter final : public comm::MqttRouter {
+class RobotImcomingMessagesRouter final : public comm::MqttIncomingRouter {
     public:
-        explicit RobotMessagesRouter(std::string topicPrefix = "") :
-            comm::MqttRouter(MessageTypeMax, std::move(topicPrefix)) {}
-        virtual ~RobotMessagesRouter() = default;
+        explicit RobotImcomingMessagesRouter(std::string topicPrefix = "") :
+            comm::MqttIncomingRouter(MessageTypeMax, std::move(topicPrefix)) {}
+        virtual ~RobotImcomingMessagesRouter() = default;
 
     protected:
         std::unique_ptr<messaging::IncomingMessage> factory(uint32_t messageId) const override;

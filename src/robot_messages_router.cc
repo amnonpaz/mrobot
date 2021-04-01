@@ -23,7 +23,7 @@ bool MessageLightSet::deserialize(const unsigned char *payload, ::size_t size) {
     return true;
 }
 
-std::unique_ptr<messaging::IncomingMessage> RobotMessagesRouter::factory(uint32_t messageId) const {
+std::unique_ptr<messaging::IncomingMessage> RobotImcomingMessagesRouter::factory(uint32_t messageId) const {
     (void)(messageId);
 
     std::unique_ptr<messaging::IncomingMessage> message = nullptr;
@@ -40,7 +40,7 @@ std::unique_ptr<messaging::IncomingMessage> RobotMessagesRouter::factory(uint32_
     return message;
 }
 
-uint32_t RobotMessagesRouter::topicToMessageId(const std::string &topic) const {
+uint32_t RobotImcomingMessagesRouter::topicToMessageId(const std::string &topic) const {
     uint32_t messageId = MessageTypeMax;
 
     for (messageId = 0; messageId < MessageTypeMax; ++messageId) {
@@ -52,7 +52,7 @@ uint32_t RobotMessagesRouter::topicToMessageId(const std::string &topic) const {
     return messageId;
 }
 
-const std::string &RobotMessagesRouter::messageIdToTopic(uint32_t messageId) const {
+const std::string &RobotImcomingMessagesRouter::messageIdToTopic(uint32_t messageId) const {
     static const std::array<std::string, MessageTypeMax> strings = {
         "/led/set" // MessageTypeLightSet
     };
