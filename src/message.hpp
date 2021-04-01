@@ -23,7 +23,7 @@ class OutgoingMessage {
         OutgoingMessage() = default;
         virtual ~OutgoingMessage() = default;
 
-        virtual unsigned char *getPayload() const = 0;
+        virtual const unsigned char *getPayload() const = 0;
         virtual ::size_t getSize() const = 0;
 };
 

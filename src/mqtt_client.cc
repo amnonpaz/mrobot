@@ -11,7 +11,7 @@ namespace mrobot {
 namespace comm {
 
 bool MqttSender::send(uint32_t messageId, messaging::OutgoingMessage *pMessage) {
-    unsigned char *payload = pMessage->getPayload();
+    const unsigned char *payload = pMessage->getPayload();
     if (payload == nullptr) {
         std::cout << "Error: Null outgoing message" << '\n';
         return false;
