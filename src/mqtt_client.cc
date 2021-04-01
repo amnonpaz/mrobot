@@ -33,6 +33,10 @@ static void on_connect(mosquitto *mosq, void *obj, int rc) {
 
     if (rc == 0) { // 0 == success
         std::cout << "on_connect: Connected to broker" << '\n';
+        if (!pClient->subscribe()) {
+            std::cout << "Subscription failed, disconnecting..." << '\n';
+            pClient->disconnect();
+        }
     } else {
         std::cout << "on_connect: Connection to broker failed" << '\n';
         pClient->connect();
@@ -112,11 +116,6 @@ bool MqttClient::connect() {
     switch (rc) {
         case MOSQ_ERR_SUCCESS:
             std::cout << "Connected to broker" << '\n';
-            res = subscribe();
-            if (!res) {
-                std::cout << "Connection failed" << '\n';
-                disconnect();
-            }
             break;
         case MOSQ_ERR_INVAL:
             std::cout << "Invalid connection parameters" << '\n';

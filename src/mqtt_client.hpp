@@ -114,9 +114,9 @@ class MqttClient final {
                      const unsigned char *payload,
                      ::size_t size);
 
-    private:
-        bool subscribe() ;
+        bool subscribe();
 
+    private:
         const std::string m_clientName;
         const std::string m_brokerAddress;
         const uint16_t m_brokerPort;
