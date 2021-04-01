@@ -16,11 +16,16 @@ class IncomingMessage {
         virtual ~IncomingMessage() = default;
 
         virtual bool deserialize(const unsigned char *payload, ::size_t size) = 0;
-
-        // TODO: Implement serialize when needed
-        // virtual void serialize(std::vector<unsigned char> &buffer) const = 0;
 };
 
+class OutgoingMessage {
+    public:
+        OutgoingMessage() = default;
+        virtual ~OutgoingMessage() = default;
+
+        virtual unsigned char *getPayload() const = 0;
+        virtual ::size_t getSize() const = 0;
+};
 
 class Handler {
     public:
