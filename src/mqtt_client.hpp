@@ -68,6 +68,22 @@ class MqttIncomingRouter : public messaging::IncomingRouter {
 };
 
 
+class MqttClient;
+
+class MqttSender : public messaging::Sender {
+    public:
+        explicit MqttSender(const MqttClient *owner) :
+            m_owner(owner) {}
+        virtual ~MqttSender() = default;
+
+        bool send(uint32_t messageId, messaging::OutgoingMessage *pMessage) override;
+
+    private:
+        virtual const std::string &messageIdToTopic(uint32_t messageId) const = 0;
+
+        const MqttClient *m_owner;
+};
+
 class MqttClient final {
     public:
         MqttClient(std::string clientName,

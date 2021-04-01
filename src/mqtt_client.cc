@@ -10,6 +10,22 @@ namespace mrobot {
 
 namespace comm {
 
+bool MqttSender::send(uint32_t messageId, messaging::OutgoingMessage *pMessage) {
+    unsigned char *payload = pMessage->getPayload();
+    if (payload == nullptr) {
+        std::cout << "Error: Null outgoing message" << '\n';
+        return false;
+    }
+
+    ::size_t size = pMessage->getSize();
+    if (size == 0) {
+        std::cout << "Error: Zero size outgoing message" << '\n';
+        return false;
+    }
+
+    return m_owner->send(messageIdToTopic(messageId).c_str(), payload, size);
+}
+
 static void on_connect(mosquitto *mosq, void *obj, int rc) {
     (void)(mosq);
 

@@ -53,6 +53,14 @@ class IncomingRouter {
         mutable std::vector<std::list<Handler *>> m_handlers;
 };
 
+class Sender {
+    public:
+        Sender() = default;
+        virtual ~Sender() = default;
+
+        virtual bool send(uint32_t messageId, OutgoingMessage *pMessage) = 0;
+};
+
 } // namespace messaging
 
 } // namespace mrobot
