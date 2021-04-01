@@ -87,7 +87,7 @@ class MqttClient final {
         bool connect();
         bool disconnect();
 
-        bool send(const char *topic, const unsigned char *payload, ::size_t size);
+        bool send(const char *topic, const unsigned char *payload, ::size_t size) const;
         void receive(const char *topic,
                      const unsigned char *payload,
                      ::size_t size);

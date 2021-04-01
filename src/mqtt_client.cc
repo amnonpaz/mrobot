@@ -161,7 +161,7 @@ bool MqttClient::subscribe() {
     return res;
 }
 
-bool MqttClient::send(const char *topic, const unsigned char *payload, ::size_t size) {
+bool MqttClient::send(const char *topic, const unsigned char *payload, ::size_t size) const {
     bool res = false;
 
     int rc = mosquitto_publish(m_mosq, nullptr, topic, size, payload, s_defaultQOS, true);
