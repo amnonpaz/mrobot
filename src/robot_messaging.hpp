@@ -1,5 +1,5 @@
-#ifndef ROBOT_MESSAGES_ROUTER_H_
-#define ROBOT_MESSAGES_ROUTER_H_
+#ifndef ROBOT_MESSAGES_H_
+#define ROBOT_MESSAGES_H_
 
 #include "mqtt_client.hpp"
 
@@ -41,4 +41,4 @@ class RobotImcomingMessagesRouter final : public comm::MqttIncomingRouter {
 
 } // namespace mrobot
 
-#endif // ROBOT_MESSAGES_ROUTER_H_
+#endif // ROBOT_MESSAGES_H_

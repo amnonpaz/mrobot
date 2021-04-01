@@ -4,7 +4,7 @@
 #include "led.hpp"
 #include "conf.hpp"
 #include "mqtt_client.hpp"
-#include "robot_messages_router.hpp"
+#include "robot_messaging.hpp"
 #include "robot_messages_handlers.hpp"
 
 #include <string>

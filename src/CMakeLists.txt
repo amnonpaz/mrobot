@@ -9,7 +9,7 @@ set(SOURCES
     led.cc
     message.cc
     mqtt_client.cc
-    robot_messages_router.cc
+    robot_messaging.cc
     robot_messages_handlers.cc
    )
 

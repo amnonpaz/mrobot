@@ -10,7 +10,7 @@ set(SOURCES
     ${SOURCES_PATH}/led.cc
     ${SOURCES_PATH}/message.cc
     ${SOURCES_PATH}/mqtt_client.cc
-    ${SOURCES_PATH}/robot_messages_router.cc
+    ${SOURCES_PATH}/robot_messaging.cc
     ${SOURCES_PATH}/robot_messages_handlers.cc
    )
 
