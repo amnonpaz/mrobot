@@ -72,16 +72,22 @@ class MqttClient;
 
 class MqttSender : public messaging::Sender {
     public:
-        explicit MqttSender(const MqttClient *owner) :
-            m_owner(owner) {}
+        explicit MqttSender(const MqttClient *owner, std::string topicPrefix = "") :
+            m_owner(owner),
+            m_topicPrefix(topicPrefix) {}
         virtual ~MqttSender() = default;
 
         bool send(uint32_t messageId, messaging::OutgoingMessage *pMessage) override;
 
-    private:
+        inline std::string getTopic(uint32_t messageId) const {
+            return m_topicPrefix + messageIdToTopic(messageId);
+        }
+
+    protected:
         virtual const std::string &messageIdToTopic(uint32_t messageId) const = 0;
 
         const MqttClient *m_owner;
+        const std::string m_topicPrefix;
 };
 
 class MqttClient final {

@@ -23,7 +23,7 @@ bool MqttSender::send(uint32_t messageId, messaging::OutgoingMessage *pMessage) 
         return false;
     }
 
-    return m_owner->send(messageIdToTopic(messageId).c_str(), payload, size);
+    return m_owner->send(getTopic(messageId).c_str(), payload, size);
 }
 
 static void on_connect(mosquitto *mosq, void *obj, int rc) {
