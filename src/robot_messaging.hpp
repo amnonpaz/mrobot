@@ -10,12 +10,23 @@ enum MessageType {
     MessageTypeMax
 };
 
-class MessageLightSet : public messaging::IncomingMessage {
+class MessageLightSet : public messaging::IncomingMessage,
+                        public messaging::OutgoingMessage {
     public:
         MessageLightSet() = default;
         virtual ~MessageLightSet() = default;
 
         bool deserialize(const unsigned char *payload, ::size_t size) override;
+
+        const unsigned char *getPayload() const override {
+            return reinterpret_cast<const unsigned char *>(&m_data);
+        }
+        ::size_t getSize() const override {
+            return sizeof(m_data);
+        }
+
+        void setId(uint32_t id) noexcept { m_data.id = id; }
+        void setState(uint32_t state) noexcept { m_data.state = state; }
 
         uint32_t getId() const noexcept { return m_data.id; }
         uint32_t getState() const noexcept { return m_data.state; }
