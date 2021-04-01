@@ -7,7 +7,8 @@
 #include <signal.h>
 
 
-class MessageEcho final : public mrobot::messaging::IncomingMessage {
+class MessageEcho final : public mrobot::messaging::IncomingMessage,
+                          public mrobot::messaging::OutgoingMessage {
     public:
         MessageEcho() = default;
         virtual ~MessageEcho() = default;
@@ -27,8 +28,12 @@ class MessageEcho final : public mrobot::messaging::IncomingMessage {
             return true;
         }
 
-        const std::vector<unsigned char> &getData() const {
-            return m_data;
+        const unsigned char *getPayload() const override {
+            return m_data.data();
+        }
+
+        ::size_t getSize() const override {
+            return m_data.size();
         }
 
     private:
@@ -86,19 +91,41 @@ class TestMqttIncomingRouter final : public mrobot::comm::MqttIncomingRouter {
         }
 };
 
+class TestMqttSender final : public mrobot::comm::MqttSender {
+    public:
+        enum MessageTypes {
+            MessageTypeEchoReply,
+            MessageTypeMax
+        };
+
+        TestMqttSender(const mrobot::comm::MqttClient *owner) :
+            MqttSender(owner, "reply/") {}
+        ~TestMqttSender() = default;
+
+    protected:
+        const std::string &messageIdToTopic(uint32_t messageId) const override {
+            static const std::array<std::string, MessageTypeMax> strings = {
+                "echo"
+            };
+
+            return strings[messageId];
+        }
+
+};
+
 class EchoHandler final : public mrobot::messaging::Handler {
     public:
-        explicit EchoHandler(std::shared_ptr<mrobot::comm::MqttClient> client) :
-            m_client(client) {}
+        explicit EchoHandler(TestMqttSender *sender) :
+            m_sender(sender) {}
         ~EchoHandler() = default;
 
         void handleMessage(const std::unique_ptr<mrobot::messaging::IncomingMessage> &message) override {
             auto *echoMessage = dynamic_cast<MessageEcho *>(message.get());
-            m_client->send("reply", echoMessage->getData().data(), echoMessage->getData().size());
+            m_sender->send(TestMqttSender::MessageTypeEchoReply, echoMessage);
         }
 
     private:
-        std::shared_ptr<mrobot::comm::MqttClient> m_client;
+        TestMqttSender *m_sender;
 };
 
 
@@ -114,7 +141,10 @@ class Test {
         const std::string m_clientName;
         const std::string m_brokerAddress;
         const uint16_t m_brokerPort;
+        mrobot::comm::MqttClient m_mqttClient;
         const TestMqttIncomingRouter m_router;
+        TestMqttSender m_sender;
+        EchoHandler m_echoHandler;
         bool m_running;
 };
 
@@ -122,25 +152,21 @@ Test::Test(std::string clientName, std::string brokerAddress, uint16_t brokerPor
     m_clientName(std::move(clientName)),
     m_brokerAddress(std::move(brokerAddress)),
     m_brokerPort(brokerPort),
+    m_mqttClient(m_clientName,
+                 m_brokerAddress,
+                 m_brokerPort,
+                 &m_router),
+    m_sender(&m_mqttClient),
+    m_echoHandler(&m_sender),
     m_running(true) {
+
+    m_router.registerHandler(TestMqttIncomingRouter::MessageTypeEcho, &m_echoHandler);
 }
 
 bool Test::start() {
     std::cout << "Test MqTT client starting" << '\n';
 
-    auto client = std::make_shared<mrobot::comm::MqttClient>(m_clientName,
-                                                             m_brokerAddress,
-                                                             m_brokerPort,
-                                                             &m_router);
-    if (!client) {
-        std::cout << "Failed allocating new client" << '\n';
-        return false;
-    }
-
-    EchoHandler echoHandler(client);
-    m_router.registerHandler(TestMqttIncomingRouter::MessageTypeEcho, &echoHandler);
-
-    if (!client->initialize()) {
+    if (!m_mqttClient.initialize()) {
         std::cout << "Failed initializing client" << '\n';
         return false;
     }
@@ -150,7 +176,7 @@ bool Test::start() {
     while (m_running) {
     }
 
-    client->finalize();
+    m_mqttClient.finalize();
 
     return true;
 }
