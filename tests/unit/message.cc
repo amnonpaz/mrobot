@@ -13,7 +13,7 @@ constexpr const unsigned char * to_payload(T *pData) {
     return reinterpret_cast<const unsigned char *>(pData);
 }
 
-using unique_message_ptr = std::unique_ptr<mrobot::messaging::Message>;
+using unique_message_ptr = std::unique_ptr<mrobot::messaging::IncomingMessage>;
 
 enum TestMessageType {
     TestMessageTypeFirst,
@@ -23,7 +23,7 @@ enum TestMessageType {
 };
 
 template<typename T>
-class TestMessage : public mrobot::messaging::Message {
+class TestMessage : public mrobot::messaging::IncomingMessage {
     public:
         TestMessage() = default;
         virtual ~TestMessage() = default;

@@ -23,10 +23,10 @@ bool MessageLightSet::deserialize(const unsigned char *payload, ::size_t size) {
     return true;
 }
 
-std::unique_ptr<messaging::Message> RobotMessagesRouter::factory(uint32_t messageId) const {
+std::unique_ptr<messaging::IncomingMessage> RobotMessagesRouter::factory(uint32_t messageId) const {
     (void)(messageId);
 
-    std::unique_ptr<messaging::Message> message = nullptr;
+    std::unique_ptr<messaging::IncomingMessage> message = nullptr;
 
     switch (MessageType(messageId)) {
         case MessageTypeLightSet:

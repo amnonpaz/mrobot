@@ -10,10 +10,10 @@ namespace mrobot {
     
 namespace messaging {
 
-class Message {
+class IncomingMessage {
     public:
-        Message() = default;
-        virtual ~Message() = default;
+        IncomingMessage() = default;
+        virtual ~IncomingMessage() = default;
 
         virtual bool deserialize(const unsigned char *payload, ::size_t size) = 0;
 
@@ -27,7 +27,7 @@ class Handler {
         Handler() = default;
         virtual ~Handler() = default;
 
-        virtual void handleMessage(const std::unique_ptr<Message> &message) = 0;
+        virtual void handleMessage(const std::unique_ptr<IncomingMessage> &message) = 0;
 };
 
 class Router {
@@ -42,7 +42,7 @@ class Router {
         uint32_t invalidMessageId() const { return m_handlers.size(); }
 
     protected:
-        virtual std::unique_ptr<Message> factory(uint32_t messageId) const = 0;
+        virtual std::unique_ptr<IncomingMessage> factory(uint32_t messageId) const = 0;
 
     private:
         mutable std::vector<std::list<Handler *>> m_handlers;

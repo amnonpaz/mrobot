@@ -26,7 +26,7 @@ class LightSet : public Base {
             Base(pRobot) {}
         ~LightSet() = default;
 
-        void handleMessage(const std::unique_ptr<messaging::Message> &message) override;
+        void handleMessage(const std::unique_ptr<messaging::IncomingMessage> &message) override;
 };
 
 } // namespace message_handler

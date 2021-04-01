@@ -7,7 +7,7 @@
 #include <signal.h>
 
 
-class MessageEcho final : public mrobot::messaging::Message {
+class MessageEcho final : public mrobot::messaging::IncomingMessage {
     public:
         MessageEcho() = default;
         virtual ~MessageEcho() = default;
@@ -50,8 +50,8 @@ class TestMqttRouter final : public mrobot::comm::MqttRouter {
         ~TestMqttRouter() = default;
 
     private:
-        std::unique_ptr<mrobot::messaging::Message> factory(uint32_t messageId) const override {
-            std::unique_ptr<mrobot::messaging::Message> message = nullptr;
+        std::unique_ptr<mrobot::messaging::IncomingMessage> factory(uint32_t messageId) const override {
+            std::unique_ptr<mrobot::messaging::IncomingMessage> message = nullptr;
 
             switch (messageId) {
                 case MessageTypeEcho:
@@ -92,7 +92,7 @@ class EchoHandler final : public mrobot::messaging::Handler {
             m_client(client) {}
         ~EchoHandler() = default;
 
-        void handleMessage(const std::unique_ptr<mrobot::messaging::Message> &message) override {
+        void handleMessage(const std::unique_ptr<mrobot::messaging::IncomingMessage> &message) override {
             auto *echoMessage = dynamic_cast<MessageEcho *>(message.get());
             m_client->send("reply", echoMessage->getData().data(), echoMessage->getData().size());
         }

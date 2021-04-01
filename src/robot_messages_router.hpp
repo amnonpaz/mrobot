@@ -10,7 +10,7 @@ enum MessageType {
     MessageTypeMax
 };
 
-class MessageLightSet : public messaging::Message {
+class MessageLightSet : public messaging::IncomingMessage {
     public:
         MessageLightSet() = default;
         virtual ~MessageLightSet() = default;
@@ -34,7 +34,7 @@ class RobotMessagesRouter final : public comm::MqttRouter {
         virtual ~RobotMessagesRouter() = default;
 
     protected:
-        std::unique_ptr<messaging::Message> factory(uint32_t messageId) const override;
+        std::unique_ptr<messaging::IncomingMessage> factory(uint32_t messageId) const override;
         uint32_t topicToMessageId(const std::string &topic) const override;
         const std::string &messageIdToTopic(uint32_t messageId) const override;
 };
