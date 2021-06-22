@@ -4,6 +4,7 @@ project(mrobot
         DESCRIPTION "Robot For Maayan"
         LANGUAGES CXX)
 
+option(LINT "Lint code" ON)
 option(UNITTESTS "Build unittests" OFF)
 option(NETWORKING_TESTS "Build networking tests" OFF)
 option(SIMULATION "Build simulation" OFF)
