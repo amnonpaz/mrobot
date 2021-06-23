@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <signal.h>
 
-#define MAX_CONF_FILENAME_LEN 256UL
+static constexpr size_t s_maxConfFilenameLen = 256;
 
 static mrobot::Robot *pRobot = nullptr;
 
@@ -36,7 +36,7 @@ int main(int argc, const char *argv[])
         return 1;
     }
 
-    const std::string confFilename{argv[1], std::min(::strlen(argv[1]), MAX_CONF_FILENAME_LEN)};
+    const std::string confFilename{argv[1], std::min(::strlen(argv[1]), s_maxConfFilenameLen)};
 
     mrobot::Robot robot(confFilename);
     pRobot = &robot;
