@@ -1,0 +1,7 @@
+set(SETUP_INSTALL_PATH /opt/mrobot)
+
+install(FILES mrobot-setup.sh
+        PERMISSIONS WORLD_READ WORLD_WRITE WORLD_EXECUTE
+        DESTINATION ${SETUP_INSTALL_PATH})
+install(FILES template.conf
+        DESTINATION ${SETUP_INSTALL_PATH})

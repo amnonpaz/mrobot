@@ -18,6 +18,7 @@ endif()
 
 if (NOT TESTING)
     add_subdirectory(src)
+    add_subdirectory(scripts)
 else()
     add_subdirectory(tests)
 endif()

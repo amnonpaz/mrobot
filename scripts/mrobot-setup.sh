@@ -1,9 +1,12 @@
 #!/bin/sh
 
 # Setting up variables
+SCRIPT=`realpath $0`
+SCRIPT_DIR=`dirname $SCRIPT`
+
 TMP_DIR=/tmp/mrobot
 INSTALL_DIR=/etc/mrobot
-TEMPLATE_FILE=template.conf
+TEMPLATE_FILE=${SCRIPT_DIR}/template.conf
 CONF_FILE=mrobot.conf
 TMP_FILE=${TMP_DIR}/${CONF_FILE}
 
