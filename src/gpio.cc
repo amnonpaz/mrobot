@@ -82,9 +82,9 @@ bool Gpio::writeToGpioEntry(const std::string &entry,
     std::fstream gpioEntry;
 
     std::string entryFullPath = std::string{s_sysPrefix} + entry;
-    gpioEntry.open(entryFullPath);
+    gpioEntry.open(entryFullPath, std::ios_base::out);
     if (!gpioEntry.is_open()) {
-        std::cout << "[GPIO " << value << " Failed opening " << entryFullPath << '\n';
+        std::cout << "[GPIO " << value << "] Failed opening " << entryFullPath << '\n';
         return false;
     }
 
