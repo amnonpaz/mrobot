@@ -36,13 +36,13 @@ bool Bluetooth::scan() {
     std::unique_ptr<::inquiry_info[]> inquiries(inquiriesPtr);
 
     // hci_inquiry doesn't change inquiriesPtr, therefore
-    // this code is safe, although not  best practice
-    int nResponses = hci_inquiry(m_fd,
-                                 s_scanTimeLength,
-                                 s_scanMaxResponse,
-                                 nullptr,
-                                 &inquiriesPtr,
-                                 IREQ_CACHE_FLUSH);
+    // this code is safe, although not best practice
+    int nResponses = ::hci_inquiry(m_fd,
+                                   s_scanTimeLength,
+                                   s_scanMaxResponse,
+                                   nullptr,
+                                   &inquiriesPtr,
+                                   IREQ_CACHE_FLUSH);
     if (nResponses <= 0) {
         return false;
     }
@@ -50,16 +50,16 @@ bool Bluetooth::scan() {
     char addr[s_maxAddressLength], name[s_maxNameLength];
     m_peers.clear();
     for (int i = 0; i < nResponses; ++i) {
-        memset(addr, 0, sizeof(addr));
+        ::memset(addr, 0, sizeof(addr));
         ::ba2str(&inquiries[i].bdaddr, addr);
 
-        memset(name, 0, sizeof(name));
+        ::memset(name, 0, sizeof(name));
         int res = ::hci_read_remote_name(m_socket,
                                          &inquiries[i].bdaddr,
                                          sizeof(name), 
                                          name, 0);
         if (res < 0) {
-            strcpy(name, s_defaultName);
+            ::strcpy(name, s_defaultName);
         }
 
         m_peers.push_back({std::string(name), std::string(addr)});
