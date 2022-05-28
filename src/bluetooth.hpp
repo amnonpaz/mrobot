@@ -14,21 +14,14 @@ class Bluetooth final {
             std::string id;
         };
 
-        Bluetooth() :
-            m_fd(0), m_socket(0) {}
+        Bluetooth() = default;
         ~Bluetooth() = default;
-
-        bool initialize();
-        void finalize();
 
         bool scan();
        
         const std::list<Peer> &getPeersList() const { return m_peers; }
 
     private:
-        int m_fd;
-        int m_socket;
-
         std::list<Peer> m_peers;
 
         static constexpr uint32_t s_scanTimeLength = 8;
