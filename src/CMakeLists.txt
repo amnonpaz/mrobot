@@ -16,6 +16,7 @@ set(SOURCES
 set(LIBS
     pthread
     mosquitto
+    bluetooth
    )
 
 add_executable(${TARGET_NAME} ${SOURCES})
